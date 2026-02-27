@@ -10,9 +10,10 @@ import {
 } from "@/components/ui/select"
 
 interface InterestSelectorProps {
-  onInterestsSelect?: (interests: string[], university?: string) => void
+  onInterestsSelect: (name: string, interests: string[], university: string) => void | Promise<void>
   maxSelections?: number
   className?: string
+  loading?: boolean
 }
 
 const INTERESTS = [
@@ -34,7 +35,7 @@ const UNIVERSITIES = [
   { id: "up", label: "University of the Philippines" },
   { id: "ateneo", label: "Ateneo de Manila University" },
   { id: "dlsu", label: "De La Salle University" },
-  { id: "ustp", label: "University of Santo Tomas" },
+  { id: "ust", label: "University of Santo Tomas" },
   { id: "mapua", label: "Mapúa University" },
   { id: "pup", label: "Polytechnic University of the Philippines" },
   { id: "admu", label: "Adamson University" },
@@ -44,9 +45,11 @@ export function InterestSelector({
   onInterestsSelect,
   maxSelections = 5,
   className,
+  loading = false,
 }: InterestSelectorProps) {
   const [selected, setSelected] = React.useState<string[]>([])
   const [selectedUniversity, setSelectedUniversity] = React.useState<string>("")
+  const [name, setName] = React.useState<string>("")
 
   const handleToggle = (id: string) => {
     setSelected((prev) => {
@@ -62,11 +65,22 @@ export function InterestSelector({
   }
 
   const handleContinue = () => {
-    onInterestsSelect?.(selected, selectedUniversity)
+    onInterestsSelect?.(name, selected, selectedUniversity)
   }
 
   return (
     <div className={cn("w-full space-y-6", className)}>
+      <div>
+        <h1 className="mb-2 text-lg font-semibold">Name</h1>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Enter your name"
+          className="w-full max-w-md mx-auto border rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+
       <div className="space-y-2 text-center">
         <h1 className="text-3xl font-bold">Select Your University & Interests</h1>
       </div>
@@ -109,16 +123,16 @@ export function InterestSelector({
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-4 border-t">
+    <div className="flex items-center justify-between pt-4 border-t">
         <p className="text-sm text-muted-foreground">
           {selected.length} / {maxSelections} interests selected
         </p>
         <Button
           onClick={handleContinue}
-          disabled={selected.length === 0 || !selectedUniversity}
+          disabled={loading || selected.length === 0 || !selectedUniversity}
           size="lg"
         >
-          Continue
+          {loading ? "Loading..." : "Continue"}
         </Button>
       </div>
     </div>
