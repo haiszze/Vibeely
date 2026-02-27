@@ -69,9 +69,10 @@ export function InterestSelector({
   }
 
   return (
-    <div className={cn("w-full space-y-6", className)}>
-      <div>
-        <h1 className="mb-2 text-lg font-semibold">Name</h1>
+    <div className="flex flex-col gap-5">
+      {/* Name Input */}
+      <div className="flex flex-col items-center text-center gap-2">
+        <h1 className="text-3xl font-bold">Name</h1>
         <input
           type="text"
           value={name}
@@ -81,12 +82,13 @@ export function InterestSelector({
         />
       </div>
 
-      <div className="space-y-2 text-center">
-        <h1 className="text-3xl font-bold">Select Your University & Interests</h1>
-      </div>
+      {/* University Selection */}
+      <div className="flex flex-col gap-3">
+        <div className="space-y-2 text-center">
+          <h1 className="text-3xl font-bold">Select Your University & Interests</h1>
+        </div>
 
-      <div>
-        <p className="text-lg font-semibold mb-3">Select Your University</p>
+        <p className="text-lg font-semibold">Select Your University</p>
         <Select value={selectedUniversity} onValueChange={setSelectedUniversity}>
           <SelectTrigger className="w-full max-w-md mx-auto">
             <SelectValue placeholder="Choose your university..." />
@@ -101,12 +103,13 @@ export function InterestSelector({
         </Select>
       </div>
 
-      <div>
-        <p className="text-lg font-semibold mb-3">Select Your Interests</p>
-        <p className="text-sm text-muted-foreground mb-3">
+      {/* Interests Selection */}
+      <div className="flex flex-col gap-3">
+        <p className="text-lg font-semibold">Select Your Interests</p>
+        <p className="text-sm text-muted-foreground">
           Choose up to {maxSelections} topics you&apos;d like to explore
         </p>
-        <div className="flex flex-wrap gap-2 justify-center">
+        <div className="flex flex-wrap gap-1 justify-center">
           {INTERESTS.map((interest) => {
             const isSelected = selected.includes(interest.id)
             return (
