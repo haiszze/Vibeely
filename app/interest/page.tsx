@@ -16,6 +16,8 @@ export default function InterestPage() {
       localStorage.setItem("userName", name)
       localStorage.setItem("userUniversity", university)
 
+      router.push("/chat")
+
     } catch (error) {
       console.error("Error saving profile:", error)
     } finally {
