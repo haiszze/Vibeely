@@ -3,18 +3,24 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { InterestSelector } from "@/components/interest/interest-selector"
+import { setSession } from "@/services/session/session"
+
+export interface InterestProps {
+  name: string
+  interests: string[]
+  university: string
+}
 
 export default function InterestPage() {
   const router = useRouter()
   const [loading, setLoading] = React.useState(false)
 
-  const handleInterestsSelect = async (name: string, interests: string[], university: string) => {
+  const handleInterestsSelect = async (interestPageProps: InterestProps) => {
     setLoading(true)
     try {
-      
-      localStorage.setItem("userInterests", JSON.stringify(interests))
-      localStorage.setItem("userName", name)
-      localStorage.setItem("userUniversity", university)
+      const { name, interests, university } = interestPageProps
+
+      setSession({ name, interests, university })
 
       router.push("/chat")
 

@@ -9,8 +9,13 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+interface InterestPageProps {
+  name: string
+  interests: string[]
+  university: string
+}
 interface InterestSelectorProps {
-  onInterestsSelect: (name: string, interests: string[], university: string) => void | Promise<void>
+  onInterestsSelect: (interestPageProps: InterestPageProps) => void | Promise<void>
   maxSelections?: number
   className?: string
   loading?: boolean
@@ -65,7 +70,7 @@ export function InterestSelector({
   }
 
   const handleContinue = () => {
-    onInterestsSelect?.(name, selected, selectedUniversity)
+    onInterestsSelect?.({ name, interests: selected, university: selectedUniversity })
   }
 
   return (

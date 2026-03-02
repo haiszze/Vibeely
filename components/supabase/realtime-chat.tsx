@@ -4,12 +4,12 @@ import { Send } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { cn } from '@/lib/utils'
-import { ChatMessageItem } from '@/components/ui/chat-message'
-import { useChatScroll } from '@/hooks/use-chat-scroll'
+import { ChatMessageItem } from '@/components/supabase/chat-message'
+import { useChatScroll } from '@/services/hooks/use-chat-scroll'
 import {
   useRealtimeChat,
   type ChatMessage,
-} from '@/hooks/use-realtime-chat'
+} from '@/services/hooks/use-realtime-chat'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 

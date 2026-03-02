@@ -2,8 +2,8 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { RealtimeChat } from "@/components/ui/realtime-chat"
-import { ChatMessageItem } from "@/components/ui/chat-message"
+import { RealtimeChat } from "@/components/supabase/realtime-chat"
+import { ChatMessageItem } from "@/components/supabase/chat-message"
 import { useState } from "react"
 
 export default function ChatPage() {
