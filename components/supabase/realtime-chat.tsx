@@ -12,7 +12,7 @@ import {
 } from '@/services/hooks/use-realtime-chat'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { removeSession } from '@/services/session/session'
+import { getSession, removeSession } from '@/services/session/session'
 import { useRouter } from "next/navigation"
 
 
@@ -38,6 +38,9 @@ export const RealtimeChat = ({
   messages: initialMessages = [],
 }: RealtimeChatProps) => {
   const { containerRef, scrollToBottom } = useChatScroll()
+  const session = getSession()
+  const [shouldExit, setShouldExit] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const router = useRouter()
 
   const {
@@ -74,10 +77,20 @@ export const RealtimeChat = ({
     scrollToBottom()
   }, [allMessages, scrollToBottom])
 
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (shouldExit && isMounted) {
+      removeSession()
+      router.push('/interest')
+    }
+  }, [shouldExit, isMounted, router])
+
   const handleExit = useCallback(() => {
-  removeSession()
-  router.push('/interest')
-  }, [router])
+    setShouldExit(true)
+  }, [])
 
   const handleSendMessage = useCallback(
     (e: React.FormEvent) => {
