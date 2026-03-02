@@ -38,9 +38,6 @@ export const RealtimeChat = ({
   messages: initialMessages = [],
 }: RealtimeChatProps) => {
   const { containerRef, scrollToBottom } = useChatScroll()
-  const session = getSession()
-  const [shouldExit, setShouldExit] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
   const router = useRouter()
 
   const {
@@ -77,20 +74,10 @@ export const RealtimeChat = ({
     scrollToBottom()
   }, [allMessages, scrollToBottom])
 
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
-
-  useEffect(() => {
-    if (shouldExit && isMounted) {
-      removeSession()
-      router.push('/interest')
-    }
-  }, [shouldExit, isMounted, router])
-
   const handleExit = useCallback(() => {
-    setShouldExit(true)
-  }, [])
+  removeSession()
+  router.push('/interest')
+  }, [router])
 
   const handleSendMessage = useCallback(
     (e: React.FormEvent) => {
