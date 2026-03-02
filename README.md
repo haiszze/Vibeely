@@ -30,7 +30,7 @@ A real-time chat application that connects users based on shared interests. User
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/haiszze/vibely.git
 cd vibely
 ```
 
@@ -79,15 +79,6 @@ vibely/
 │   └── hooks/            # Custom React hooks
 └── public/               # Static assets
 ```
-
-## How It Works
-
-1. **User Onboarding**: Users land on the interest selection page
-2. **Profile Creation**: Users enter their name, university, and select interests
-3. **Session Management**: User data is stored in localStorage for the session
-4. **Real-time Chat**: Users are directed to a chat room to communicate with others
-5. **Logout**: Users can exit the chat, which clears their session
-
 ## Learn More
 
 To learn more about Next.js and Supabase, check out:
