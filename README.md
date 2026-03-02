@@ -12,11 +12,10 @@ A real-time chat application that connects users based on shared interests. User
 
 ## Tech Stack
 
-- **Frontend**: [Next.js 14](https://nextjs.org) with App Router
+- **Frontend**: [Next.js 16](https://nextjs.org)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
-- **Database & Auth**: [Supabase](https://supabase.com)
-- **Real-time**: Supabase Realtime
+- **Database**: [Supabase](https://supabase.com)
 - **UI Components**: Shadcn/ui
 
 ## Getting Started
