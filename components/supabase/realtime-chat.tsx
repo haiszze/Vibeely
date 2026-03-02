@@ -1,6 +1,6 @@
 'use client'
 
-import { Send } from 'lucide-react'
+import { LogOut, Send } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { cn } from '@/lib/utils'
@@ -12,6 +12,9 @@ import {
 } from '@/services/hooks/use-realtime-chat'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { removeSession } from '@/services/session/session'
+import { useRouter } from "next/navigation"
+
 
 interface RealtimeChatProps {
   roomName: string
@@ -35,6 +38,7 @@ export const RealtimeChat = ({
   messages: initialMessages = [],
 }: RealtimeChatProps) => {
   const { containerRef, scrollToBottom } = useChatScroll()
+  const router = useRouter()
 
   const {
     messages: realtimeMessages,
@@ -70,6 +74,11 @@ export const RealtimeChat = ({
     scrollToBottom()
   }, [allMessages, scrollToBottom])
 
+  const handleExit = useCallback(() => {
+  removeSession()
+  router.push('/interest')
+  }, [router])
+
   const handleSendMessage = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault()
@@ -80,6 +89,7 @@ export const RealtimeChat = ({
     },
     [newMessage, isConnected, sendMessage]
   )
+  
 
   return (
     <div className="flex flex-col h-full w-full bg-background text-foreground antialiased">
@@ -111,7 +121,18 @@ export const RealtimeChat = ({
         </div>
       </div>
 
-      <form onSubmit={handleSendMessage} className="flex w-full gap-2 border-t border-border p-4">
+      <form onSubmit={handleSendMessage} className="flex w-full gap-1 border-t border-border p-4">
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleExit}
+          className="text-destructive hover:text-destructive p-1"
+        >
+          <LogOut className="size-5"/>
+        </Button>
+
+        
         <Input
           className={cn(
             'rounded-full bg-background text-sm transition-all duration-300',
