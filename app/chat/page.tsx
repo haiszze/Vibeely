@@ -4,11 +4,8 @@ import { useEffect, useState } from "react"
 import { RealtimeChat } from "@/components/supabase/realtime-chat"
 import { getSession } from "@/app/core/services/session/session"
 import { useRouter } from "next/navigation"
+import { QueueStatus } from "../core/enum/queue.enum"
 
-type QueueResponse =
-  | { status: "waiting"; room_id: null; matched_session_id: null }
-  | { status: "matched"; room_id: string; matched_session_id: string }
-  | { error: string }
 
 export default function ChatPage() {
   const router = useRouter()
@@ -56,9 +53,9 @@ export default function ChatPage() {
           }),
         })
 
-        let data: QueueResponse
+        let data: QueueStatus
         try {
-          data = (await res.json()) as QueueResponse
+          data = (await res.json()) as QueueStatus
         } catch {
           console.error("queue error: invalid JSON response")
           return
@@ -75,7 +72,7 @@ export default function ChatPage() {
         }
 
         if (data.status === "matched") {
-          setRoomId(data.room_id)
+          setRoomId(data.roomId!)
           return
         }
       } catch (e) {
