@@ -5,14 +5,14 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { cn } from '@/lib/utils'
 import { ChatMessageItem } from '@/components/supabase/chat-message'
-import { useChatScroll } from '@/services/hooks/use-chat-scroll'
+import { useChatScroll } from '@/app/core/services/hooks/use-chat-scroll'
 import {
   useRealtimeChat,
   type ChatMessage,
-} from '@/services/hooks/use-realtime-chat'
+} from '@/app/core/services/hooks/use-realtime-chat'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { getSession, removeSession } from '@/services/session/session'
+import { removeSession } from '@/app/core/services/session/session'
 import { useRouter } from "next/navigation"
 
 
@@ -74,10 +74,21 @@ export const RealtimeChat = ({
     scrollToBottom()
   }, [allMessages, scrollToBottom])
 
-  const handleExit = useCallback(() => {
-  removeSession()
-  router.push('/interest')
-  }, [router])
+  const handleExit = useCallback(async () => {
+    try {
+      await fetch("/core/api/queue", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({ roomId: roomName }),
+      })
+    } catch {
+      console.error("Error exiting room")
+    } finally {
+      removeSession()
+      router.push('/interest')
+    }
+  }, [roomName, router])
 
   const handleSendMessage = useCallback(
     (e: React.FormEvent) => {
@@ -122,11 +133,13 @@ export const RealtimeChat = ({
       </div>
 
       <form onSubmit={handleSendMessage} className="flex w-full gap-1 border-t border-border p-4">
+
         
         <Button
           variant="ghost"
           size="sm"
           onClick={handleExit}
+          type="button"
           className="text-destructive hover:text-destructive p-1"
         >
           <LogOut className="size-5"/>

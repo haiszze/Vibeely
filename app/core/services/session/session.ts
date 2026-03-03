@@ -1,8 +1,4 @@
-export interface UserProp  {
-  name: string
-  university: string
-  interests: string[]
-}
+import { v4 as uuidv4 } from 'uuid';
 
 export interface Session {
   sessionId: string
@@ -20,7 +16,7 @@ export function getSession(): Session | null {
 
 export function setSession(user: UserProp): Session {
   const session: Session = {
-    sessionId: crypto.randomUUID(),
+    sessionId: uuidv4(),
     userProp: user,
     createdAt: new Date(),
   }

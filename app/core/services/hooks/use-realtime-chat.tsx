@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
-import { createClient } from '@/services/supabase/client'
+import { createClient } from '@/app/core/services/supabase/client'
 
 interface UseRealtimeChatProps {
   roomName: string
