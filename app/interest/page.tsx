@@ -3,22 +3,16 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { InterestSelector } from "@/components/interest/interest-selector"
-import { setSession } from "@/services/session/session"
-
-export interface InterestProps {
-  name: string
-  interests: string[]
-  university: string
-}
+import { setSession } from "@/app/core/services/session/session"
 
 export default function InterestPage() {
   const router = useRouter()
   const [loading, setLoading] = React.useState(false)
 
-  const handleInterestsSelect = async (interestPageProps: InterestProps) => {
+  const handleInterestsSelect = async (userProp: UserProp) => {
     setLoading(true)
     try {
-      const { name, interests, university } = interestPageProps
+      const { name, interests, university } = userProp
 
       setSession({ name, interests, university })
 

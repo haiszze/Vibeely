@@ -1,5 +1,4 @@
 import * as React from "react"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -9,13 +8,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-interface InterestPageProps {
-  name: string
-  interests: string[]
-  university: string
-}
 interface InterestSelectorProps {
-  onInterestsSelect: (interestPageProps: InterestPageProps) => void | Promise<void>
+  onInterestsSelect: (interestPageProps: UserProp) => void | Promise<void>
   maxSelections?: number
   className?: string
   loading?: boolean
@@ -49,7 +43,6 @@ const UNIVERSITIES = [
 export function InterestSelector({
   onInterestsSelect,
   maxSelections = 5,
-  className,
   loading = false,
 }: InterestSelectorProps) {
   const [selected, setSelected] = React.useState<string[]>([])
