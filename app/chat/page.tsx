@@ -5,6 +5,7 @@ import { RealtimeChat } from "@/components/supabase/realtime-chat"
 import { getSession } from "@/app/core/services/session/session"
 import { useRouter } from "next/navigation"
 import { QueueStatus } from "../core/enum/queue.enum"
+import { logError } from "@/app/core/services/log/log"
 
 
 export default function ChatPage() {
@@ -57,17 +58,17 @@ export default function ChatPage() {
         try {
           data = (await res.json()) as QueueStatus
         } catch {
-          console.error("queue error: invalid JSON response")
+          logError("queue: invalid JSON response")
           return
         }
 
         if (!res.ok) {
-          console.error("queue error:", "error" in data ? data.error : `HTTP ${res.status}`)
+          logError("queue: http error", "error" in data ? data.error : `HTTP ${res.status}`)
           return
         }
 
         if ("error" in data) {
-          console.error("queue error:", data.error)
+          logError("queue: api error", data.error)
           return
         }
 
@@ -77,7 +78,7 @@ export default function ChatPage() {
         }
       } catch (e) {
         if (!controller.signal.aborted) {
-          console.error("queue error:", e)
+          logError("queue: request failed", e)
         }
         return
       } finally {
