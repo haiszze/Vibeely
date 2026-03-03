@@ -148,7 +148,6 @@ export async function POST(req: Request) {
 
     // ========================
     // STEP 6: REMOVE BOTH FROM MATCH_QUEUE
-    // (Do NOT delete match_sessions here: match_rooms has FK -> match_sessions)
     // ========================
     const { error: deleteQueueError } = await supabase
       .from("match_queue")
