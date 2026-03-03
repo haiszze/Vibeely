@@ -122,11 +122,13 @@ export const RealtimeChat = ({
       </div>
 
       <form onSubmit={handleSendMessage} className="flex w-full gap-1 border-t border-border p-4">
+
         
         <Button
           variant="ghost"
           size="sm"
           onClick={handleExit}
+          type="button"
           className="text-destructive hover:text-destructive p-1"
         >
           <LogOut className="size-5"/>
