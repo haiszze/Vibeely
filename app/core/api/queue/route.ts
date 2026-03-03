@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { QueueStatus } from "../../enum/queue.enum"
+import { logError } from "../../services/log/log"
 
 type Body = {
   sessionId?: string
@@ -43,7 +44,10 @@ function getSupabaseConfig(): SupabaseConfig {
 export async function POST(req: Request) {
   try {
     const cfg = getSupabaseConfig()
-    if ("error" in cfg) return json({ error: cfg.error }, { status: 500 })
+    if ("error" in cfg) {
+      logError("queue: missing supabase config", cfg.error)
+      return json({ error: cfg.error }, { status: 500 })
+    }
 
     const supabase = createClient(cfg.url, cfg.key, {
       auth: { persistSession: false, autoRefreshToken: false },
@@ -77,6 +81,7 @@ export async function POST(req: Request) {
       .maybeSingle()
 
     if (existingRoomError) {
+      logError("queue: existing room lookup failed", existingRoomError, { sessionId })
       return json({ error: existingRoomError.message }, { status: 500 })
     }
 
@@ -108,7 +113,10 @@ export async function POST(req: Request) {
         { onConflict: "session_id" },
       )
 
-    if (sessionError) return json({ error: sessionError.message }, { status: 500 })
+    if (sessionError) {
+      logError("queue: match_sessions upsert failed", sessionError, { sessionId, universityId })
+      return json({ error: sessionError.message }, { status: 500 })
+    }
 
     // ========================
     // JOIN QUEUE
@@ -120,7 +128,10 @@ export async function POST(req: Request) {
         { onConflict: "session_id" },
       )
 
-    if (queueError) return json({ error: queueError.message }, { status: 500 })
+    if (queueError) {
+      logError("queue: match_queue upsert failed", queueError, { sessionId, universityId })
+      return json({ error: queueError.message }, { status: 500 })
+    }
 
     // ========================
     //  QUEUE POLLING LOOP (POLL FOR MATCH)
@@ -132,7 +143,13 @@ export async function POST(req: Request) {
       .overlaps("interest_ids", interestIds)
       .order("joined_at", { ascending: true })
 
-    if (candidatesError) return json({ error: candidatesError.message }, { status: 500 })
+    if (candidatesError) {
+      logError("queue: match_queue candidates select failed", candidatesError, {
+        sessionId,
+        universityId,
+      })
+      return json({ error: candidatesError.message }, { status: 500 })
+    }
 
     if (!candidates || candidates.length === 0) {
       return json({ status: "waiting"})
@@ -143,6 +160,10 @@ export async function POST(req: Request) {
     const matchedSessionId: string = best.session_id
 
     if (!isUuid(matchedSessionId)) {
+      logError("queue: bad matched session id in queue", "Non-UUID session_id", {
+        sessionId,
+        matchedSessionId,
+      })
       return json({ error: "Matched sessionId is not a UUID (bad data in match_queue)" }, { status: 500 })
     }
 
@@ -154,7 +175,13 @@ export async function POST(req: Request) {
       .delete({ count: "exact" })
       .in("session_id", [sessionId, matchedSessionId])
 
-    if (deleteQueueError) return json({ error: deleteQueueError.message }, { status: 500 })
+    if (deleteQueueError) {
+      logError("queue: match_queue delete failed", deleteQueueError, {
+        sessionId,
+        matchedSessionId,
+      })
+      return json({ error: deleteQueueError.message }, { status: 500 })
+    }
 
 
     // ========================
@@ -170,6 +197,10 @@ export async function POST(req: Request) {
       .single()
 
     if (roomError || !room) {
+      logError("queue: match_rooms insert failed", roomError ?? "Missing room", {
+        session1,
+        session2,
+      })
       return json({ error: roomError?.message ?? "Failed to create room" }, { status: 500 })
     }
 
@@ -183,6 +214,7 @@ export async function POST(req: Request) {
     })
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error"
+    logError("queue: unhandled error", e, { message })
     return json({ error: message }, { status: 500 })
   }
 }
@@ -194,7 +226,10 @@ type DeleteBody = {
 export async function DELETE(req: Request) {
   try {
     const cfg = getSupabaseConfig()
-    if ("error" in cfg) return json({ error: cfg.error }, { status: 500 })
+    if ("error" in cfg) {
+      logError("queue: missing supabase config (delete)", cfg.error)
+      return json({ error: cfg.error }, { status: 500 })
+    }
 
     const supabase = createClient(cfg.url, cfg.key, {
       auth: { persistSession: false, autoRefreshToken: false },
@@ -234,6 +269,7 @@ export async function DELETE(req: Request) {
     return json({ status: "ok" })
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error"
+    logError("queue: unhandled error (delete)", e, { message })
     return json({ error: message }, { status: 500 })
   }
 }

@@ -4,6 +4,7 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { InterestSelector } from "@/components/interest/interest-selector"
 import { setSession } from "@/app/core/services/session/session"
+import { logError } from "@/app/core/services/log/log"
 
 export default function InterestPage() {
   const router = useRouter()
@@ -19,7 +20,7 @@ export default function InterestPage() {
       router.push("/chat")
 
     } catch (error) {
-      console.error("Error saving profile:", error)
+      logError("profile: failed to save", error)
     } finally {
       setLoading(false)
     }

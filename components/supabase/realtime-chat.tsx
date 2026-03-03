@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { removeSession } from '@/app/core/services/session/session'
+import { logError } from '@/app/core/services/log/log'
 import { useRouter } from "next/navigation"
 
 
@@ -83,7 +84,7 @@ export const RealtimeChat = ({
         body: JSON.stringify({ roomId: roomName }),
       })
     } catch {
-      console.error("Error exiting room")
+      logError("room: exit cleanup failed")
     } finally {
       removeSession()
       router.push('/interest')
