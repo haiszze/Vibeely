@@ -27,10 +27,8 @@ export default function InterestPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
+    <div className="mx-auto w-full max-w-2xl min-h-screen bg-background flex items-center justify-center p-4">
         <InterestSelector onInterestsSelect={handleInterestsSelect} loading={loading} />
-      </div>
     </div>
   )
 }
