@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
-import { createClient } from '@/services/supabase/client'
+import { createClient } from '@/app/core/services/supabase/client'
+import { logInfo, logWarn } from '@/app/core/services/log/log'
 
 interface UseRealtimeChatProps {
   roomName: string
@@ -27,6 +28,7 @@ export function useRealtimeChat({ roomName, username }: UseRealtimeChatProps) {
   const [isConnected, setIsConnected] = useState(false)
 
   useEffect(() => {
+    setIsConnected(false)
     const newChannel = supabase.channel(roomName)
 
     newChannel
@@ -36,8 +38,10 @@ export function useRealtimeChat({ roomName, username }: UseRealtimeChatProps) {
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           setIsConnected(true)
+          logInfo('realtime: subscribed', { roomName })
         } else {
           setIsConnected(false)
+          logWarn('realtime: not subscribed', { roomName, status })
         }
       })
 
@@ -46,7 +50,7 @@ export function useRealtimeChat({ roomName, username }: UseRealtimeChatProps) {
     return () => {
       supabase.removeChannel(newChannel)
     }
-  }, [roomName, username, supabase])
+  }, [roomName, supabase])
 
   const sendMessage = useCallback(
     async (content: string) => {
