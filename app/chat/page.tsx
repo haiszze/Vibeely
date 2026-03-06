@@ -60,6 +60,7 @@ export default function ChatPage() {
     let timer: ReturnType<typeof setTimeout> | null = null
     let stopped = false
     let inFlight = false
+    let matched = false
     const controller = new AbortController()
     const currentSession = session
 
@@ -101,6 +102,8 @@ export default function ChatPage() {
         }
 
         if (data.status === "matched" && data.roomId) {
+          matched = true
+          stopped = true
           setRoomId(data.roomId)
           return
         }
@@ -110,7 +113,7 @@ export default function ChatPage() {
         }
       } finally {
         inFlight = false
-        if (!stopped) {
+        if (!stopped && !matched && !controller.signal.aborted) {
           timer = setTimeout(tick, POLL_INTERVAL)
         }
       }
@@ -123,7 +126,7 @@ export default function ChatPage() {
       controller.abort()
       if (timer) clearTimeout(timer)
     }
-  }, [broadcastReady, session])
+  }, [broadcastReady, roomId, session])
 
   if (session === null) return null
 
