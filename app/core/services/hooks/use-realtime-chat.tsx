@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { createClient } from '@/app/core/services/supabase/client'
-import { logInfo, logWarn } from '@/app/core/services/log/log'
 
 interface UseRealtimeChatProps {
   roomName: string
@@ -19,29 +18,40 @@ export interface ChatMessage {
   createdAt: string
 }
 
+type PartnerLeftPayload = {
+  username: string
+  createdAt: string
+}
+
 const EVENT_MESSAGE_TYPE = 'message'
+const EVENT_PARTNER_LEFT_TYPE = 'partner-left'
 
 export function useRealtimeChat({ roomName, username }: UseRealtimeChatProps) {
   const supabase = createClient()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [channel, setChannel] = useState<ReturnType<typeof supabase.channel> | null>(null)
   const [isConnected, setIsConnected] = useState(false)
+  const [hasPartnerLeft, setHasPartnerLeft] = useState(false)
 
   useEffect(() => {
     setIsConnected(false)
+    setHasPartnerLeft(false)
+
     const newChannel = supabase.channel(roomName)
 
     newChannel
       .on('broadcast', { event: EVENT_MESSAGE_TYPE }, (payload) => {
         setMessages((current) => [...current, payload.payload as ChatMessage])
       })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
+      .on('broadcast', { event: EVENT_PARTNER_LEFT_TYPE }, () => {
+        setHasPartnerLeft(true)
+        setIsConnected(false)
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED' && !hasPartnerLeft) {
           setIsConnected(true)
-          logInfo('realtime: subscribed', { roomName })
         } else {
           setIsConnected(false)
-          logWarn('realtime: not subscribed', { roomName, status })
         }
       })
 
@@ -50,11 +60,11 @@ export function useRealtimeChat({ roomName, username }: UseRealtimeChatProps) {
     return () => {
       supabase.removeChannel(newChannel)
     }
-  }, [roomName, supabase])
+  }, [roomName, supabase, hasPartnerLeft])
 
   const sendMessage = useCallback(
     async (content: string) => {
-      if (!channel || !isConnected) return
+      if (!channel || !isConnected || hasPartnerLeft) return
 
       const message: ChatMessage = {
         id: crypto.randomUUID(),
@@ -65,7 +75,6 @@ export function useRealtimeChat({ roomName, username }: UseRealtimeChatProps) {
         createdAt: new Date().toISOString(),
       }
 
-      // Update local state immediately for the sender
       setMessages((current) => [...current, message])
 
       await channel.send({
@@ -74,8 +83,29 @@ export function useRealtimeChat({ roomName, username }: UseRealtimeChatProps) {
         payload: message,
       })
     },
-    [channel, isConnected, username]
+    [channel, isConnected, hasPartnerLeft, username]
   )
 
-  return { messages, sendMessage, isConnected }
+  const notifyPartnerLeft = useCallback(async () => {
+    if (!channel) return
+
+    const payload: PartnerLeftPayload = {
+      username,
+      createdAt: new Date().toISOString(),
+    }
+
+    await channel.send({
+      type: 'broadcast',
+      event: EVENT_PARTNER_LEFT_TYPE,
+      payload,
+    })
+  }, [channel, username])
+
+  return {
+    messages,
+    sendMessage,
+    isConnected: isConnected && !hasPartnerLeft,
+    hasPartnerLeft,
+    notifyPartnerLeft,
+  }
 }

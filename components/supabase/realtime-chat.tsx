@@ -14,8 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { removeSession } from '@/app/core/services/session/session'
 import { logError } from '@/app/core/services/log/log'
-import { useRouter } from "next/navigation"
-
+import { useRouter } from 'next/navigation'
 
 interface RealtimeChatProps {
   roomName: string
@@ -45,23 +44,22 @@ export const RealtimeChat = ({
     messages: realtimeMessages,
     sendMessage,
     isConnected,
+    hasPartnerLeft,
+    notifyPartnerLeft,
   } = useRealtimeChat({
     roomName,
     username,
   })
   const [newMessage, setNewMessage] = useState('')
 
-  // Merge realtime messages with initial messages
   const allMessages = useMemo(() => {
     const mergedMessages = [...initialMessages, ...realtimeMessages]
-    // Remove duplicates based on message id
+
     const uniqueMessages = mergedMessages.filter(
       (message, index, self) => index === self.findIndex((m) => m.id === message.id)
     )
-    // Sort by creation date
-    const sortedMessages = uniqueMessages.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
 
-    return sortedMessages
+    return uniqueMessages.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
   }, [initialMessages, realtimeMessages])
 
   useEffect(() => {
@@ -75,43 +73,57 @@ export const RealtimeChat = ({
     scrollToBottom()
   }, [allMessages, scrollToBottom])
 
+  useEffect(() => {
+    if (!hasPartnerLeft) return
+
+    removeSession()
+    router.replace('/interest')
+  }, [hasPartnerLeft, router])
+
   const handleExit = useCallback(async () => {
     try {
-      await fetch("/core/api/queue", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        cache: "no-store",
+      await notifyPartnerLeft()
+
+      await fetch('/core/api/queue', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
         body: JSON.stringify({ roomId: roomName }),
       })
     } catch {
-      logError("room: exit cleanup failed")
+      logError('room: exit cleanup failed')
     } finally {
       removeSession()
       router.push('/interest')
     }
-  }, [roomName, router])
+  }, [notifyPartnerLeft, roomName, router])
 
   const handleSendMessage = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault()
-      if (!newMessage.trim() || !isConnected) return
+
+      if (!newMessage.trim() || !isConnected || hasPartnerLeft) return
 
       sendMessage(newMessage)
       setNewMessage('')
     },
-    [newMessage, isConnected, sendMessage]
+    [newMessage, isConnected, hasPartnerLeft, sendMessage]
   )
   
 
   return (
     <div className="flex flex-col h-full w-full bg-background text-foreground antialiased">
-      {/* Messages */}
       <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-        {allMessages.length === 0 ? (
+        {hasPartnerLeft ? (
+          <div className="text-center text-sm text-muted-foreground">
+            Your partner left the chat.
+          </div>
+        ) : allMessages.length === 0 ? (
           <div className="text-center text-sm text-muted-foreground">
             No messages yet. Start the conversation!
           </div>
         ) : null}
+
         <div className="space-y-1">
           {allMessages.map((message, index) => {
             const prevMessage = index > 0 ? allMessages[index - 1] : null
@@ -143,7 +155,7 @@ export const RealtimeChat = ({
           type="button"
           className="text-destructive hover:text-destructive p-1"
         >
-          <LogOut className="size-5"/>
+          <LogOut className="size-5" />
         </Button>
 
         
@@ -155,14 +167,15 @@ export const RealtimeChat = ({
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Type a message..."
-          disabled={!isConnected}
+          placeholder={hasPartnerLeft ? 'Partner left the chat' : 'Type a message...'}
+          disabled={!isConnected || hasPartnerLeft}
         />
-        {isConnected && newMessage.trim() && (
+
+        {isConnected && !hasPartnerLeft && newMessage.trim() && (
           <Button
             className="aspect-square rounded-full animate-in fade-in slide-in-from-right-4 duration-300"
             type="submit"
-            disabled={!isConnected}
+            disabled={!isConnected || hasPartnerLeft}
           >
             <Send className="size-4" />
           </Button>
