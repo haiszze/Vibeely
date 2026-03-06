@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { createClient } from '@/app/core/services/supabase/client'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
 interface UseRealtimeChatProps {
   roomName: string
@@ -29,7 +30,7 @@ const EVENT_PARTNER_LEFT_TYPE = 'partner-left'
 export function useRealtimeChat({ roomName, username }: UseRealtimeChatProps) {
   const supabase = createClient()
   const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [channel, setChannel] = useState<ReturnType<typeof supabase.channel> | null>(null)
+  const [channel, setChannel] = useState<RealtimeChannel | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [hasPartnerLeft, setHasPartnerLeft] = useState(false)
 
@@ -47,10 +48,10 @@ export function useRealtimeChat({ roomName, username }: UseRealtimeChatProps) {
         setHasPartnerLeft(true)
         setIsConnected(false)
       })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED' && !hasPartnerLeft) {
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
           setIsConnected(true)
-        } else {
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
           setIsConnected(false)
         }
       })
@@ -60,7 +61,7 @@ export function useRealtimeChat({ roomName, username }: UseRealtimeChatProps) {
     return () => {
       supabase.removeChannel(newChannel)
     }
-  }, [roomName, supabase, hasPartnerLeft])
+  }, [roomName, supabase])
 
   const sendMessage = useCallback(
     async (content: string) => {

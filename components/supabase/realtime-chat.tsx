@@ -115,8 +115,8 @@ export const RealtimeChat = ({
   
 
   return (
-    <div className="flex flex-col h-full w-full bg-background text-foreground antialiased">
-      <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="flex flex-col h-[60vh] w-full bg-background text-foreground antialiased">
+      <div ref={containerRef} className="flex-1 overflow-y-auto w-[60vw] p-4 space-y-4">
         {hasPartnerLeft ? (
           <div className="text-center text-sm text-muted-foreground">
             Your partner left the chat.
