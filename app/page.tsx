@@ -5,9 +5,9 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="max-w-2xl text-center space-y-6">
-        <h1 className="text-5xl font-bold">Welcome to Vibeme</h1>
+        <h1 className="text-5xl font-bold">Welcome to Vibeely</h1>
         <p className="text-xl text-muted-foreground">
-          Connect with college and university students, explore interests, and
+          Connect with people with the same interests and university, and
           build meaningful friendships
         </p>
 
