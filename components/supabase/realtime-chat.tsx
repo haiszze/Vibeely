@@ -80,22 +80,25 @@ export const RealtimeChat = ({
     router.replace('/interest')
   }, [hasPartnerLeft, router])
 
-  const handleExit = useCallback(async () => {
-    try {
-      await notifyPartnerLeft()
+  const handleExit = useCallback(() => {
+    removeSession()
+    router.replace('/interest')
 
-      await fetch('/core/api/queue', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        cache: 'no-store',
-        body: JSON.stringify({ roomId: roomName }),
-      })
-    } catch {
-      logError('room: exit cleanup failed')
-    } finally {
-      removeSession()
-      router.push('/interest')
-    }
+    void (async () => {
+      try {
+        await Promise.allSettled([
+          notifyPartnerLeft(),
+          fetch('/core/api/queue', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            cache: 'no-store',
+            body: JSON.stringify({ roomId: roomName }),
+          }),
+        ])
+      } catch {
+        logError('room: exit cleanup failed')
+      }
+    })()
   }, [notifyPartnerLeft, roomName, router])
 
   const handleSendMessage = useCallback(
