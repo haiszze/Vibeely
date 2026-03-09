@@ -43,6 +43,7 @@ export async function POST(req: Request) {
     const universityId = body?.userProp?.university
     const interestIds = body?.userProp?.interests
 
+    // VALIDATION
     if (!sessionId) return json({ error: "Missing sessionId" }, { status: 400 })
     if (!isUuid(sessionId)) return json({ error: "sessionId must be a UUID" }, { status: 400 })
     if (!universityId) return json({ error: "Missing userProp.university" }, { status: 400 })
@@ -50,6 +51,7 @@ export async function POST(req: Request) {
       return json({ error: "userProp.interests must be a non-empty array" }, { status: 400 })
     }
 
+    // EXISTING ROOM CHECK
     const { data: existingRoom, error: existingRoomError } = await cfg
       .from("match_rooms")
       .select("room_id, session_1_id, session_2_id")
