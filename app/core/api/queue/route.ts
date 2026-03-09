@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
 import { QueueStatus } from "../../enum/queue.enum"
 import { logError } from "../../services/log/log"
+import { createClient } from "../../services/supabase/client"
 
 type Body = {
   sessionId?: string
@@ -21,37 +21,13 @@ function isUuid(value: string) {
   )
 }
 
-type SupabaseConfig = { url: string; key: string } | { error: string }
-
-function getSupabaseConfig(): SupabaseConfig {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-
-  if (!url) return { error: "Missing env NEXT_PUBLIC_SUPABASE_URL" }
-  if (!key) {
-    return {
-      error:
-        "Missing Supabase key env. Set SUPABASE_SERVICE_ROLE_KEY (preferred for API routes)",
-    }
-  }
-
-  return { url, key }
-}
-
 export async function POST(req: Request) {
   try {
-    const cfg = getSupabaseConfig()
+    const cfg = createClient("servicerole")
     if ("error" in cfg) {
       logError("queue: missing supabase config", cfg.error)
-      return json({ error: cfg.error }, { status: 500 })
+      return json({ error: String(cfg.error) }, { status: 500 })
     }
-
-    const supabase = createClient(cfg.url, cfg.key, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    })
 
     const body = (await req.json()) as Body
 
@@ -72,7 +48,7 @@ export async function POST(req: Request) {
     // ========================
     // VALIDATION FOR EXISTING MATCH
     // ========================
-    const { data: existingRoom, error: existingRoomError } = await supabase
+    const { data: existingRoom, error: existingRoomError } = await cfg
       .from("match_rooms")
       .select("room_id, session_1_id, session_2_id")
       .or(`session_1_id.eq.${sessionId},session_2_id.eq.${sessionId}`)
@@ -101,7 +77,7 @@ export async function POST(req: Request) {
     // ========================
     // UPSERT SESSION PROFILE
     // ========================
-    const { error: sessionError } = await supabase
+    const { error: sessionError } = await cfg
       .from("match_sessions")
       .upsert(
         {
@@ -121,7 +97,7 @@ export async function POST(req: Request) {
     // ========================
     // JOIN QUEUE
     // ========================
-    const { error: queueError } = await supabase
+    const { error: queueError } = await cfg
       .from("match_queue")
       .upsert(
         { session_id: sessionId, university_id: universityId, interest_ids: interestIds },
@@ -136,7 +112,7 @@ export async function POST(req: Request) {
     // ========================
     //  QUEUE POLLING LOOP (POLL FOR MATCH)
     // ========================
-    const { data: candidates, error: candidatesError } = await supabase
+    const { data: candidates, error: candidatesError } = await cfg
       .from("match_queue")
       .select("session_id, university_id, joined_at")
       .neq("session_id", sessionId)
@@ -170,7 +146,7 @@ export async function POST(req: Request) {
     // ========================
     // STEP 6: REMOVE BOTH FROM MATCH_QUEUE
     // ========================
-    const { error: deleteQueueError } = await supabase
+    const { error: deleteQueueError } = await cfg
       .from("match_queue")
       .delete({ count: "exact" })
       .in("session_id", [sessionId, matchedSessionId])
@@ -190,7 +166,7 @@ export async function POST(req: Request) {
     const session1 = sessionId < matchedSessionId ? sessionId : matchedSessionId
     const session2 = sessionId < matchedSessionId ? matchedSessionId : sessionId
 
-    const { data: room, error: roomError } = await supabase
+    const { data: room, error: roomError } = await cfg
       .from("match_rooms")
       .insert({ session_1_id: session1, session_2_id: session2 })
       .select("room_id")
@@ -225,15 +201,7 @@ type DeleteBody = {
 
 export async function DELETE(req: Request) {
   try {
-    const cfg = getSupabaseConfig()
-    if ("error" in cfg) {
-      logError("queue: missing supabase config (delete)", cfg.error)
-      return json({ error: cfg.error }, { status: 500 })
-    }
-
-    const supabase = createClient(cfg.url, cfg.key, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    })
+    const cfg = createClient("servicerole")
 
     const body = (await req.json().catch(() => ({}))) as DeleteBody
     const roomId = body?.roomId
@@ -241,8 +209,7 @@ export async function DELETE(req: Request) {
     if (!roomId) return json({ error: "Missing roomId" }, { status: 400 })
     if (!isUuid(roomId)) return json({ error: "roomId must be a UUID" }, { status: 400 })
 
-    // Lookup sessions for cleanup
-    const { data: room, error: roomLookupError } = await supabase
+    const { data: room, error: roomLookupError } = await cfg
       .from("match_rooms")
       .select("session_1_id, session_2_id")
       .eq("room_id", roomId)
@@ -250,8 +217,7 @@ export async function DELETE(req: Request) {
 
     if (roomLookupError) return json({ error: roomLookupError.message }, { status: 500 })
 
-    // Delete the room first (FK -> match_sessions)
-    const { error: deleteRoomError } = await supabase
+    const { error: deleteRoomError } = await cfg
       .from("match_rooms")
       .delete()
       .eq("room_id", roomId)
@@ -261,9 +227,8 @@ export async function DELETE(req: Request) {
     if (room?.session_1_id && room?.session_2_id) {
       const sessionIds = [String(room.session_1_id), String(room.session_2_id)]
 
-      // Best-effort cleanup: ignore errors here so exit always works.
-      await supabase.from("match_queue").delete().in("session_id", sessionIds)
-      await supabase.from("match_sessions").delete().in("session_id", sessionIds)
+      await cfg.from("match_queue").delete().in("session_id", sessionIds)
+      await cfg.from("match_sessions").delete().in("session_id", sessionIds)
     }
 
     return json({ status: "ok" })
