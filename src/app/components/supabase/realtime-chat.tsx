@@ -17,6 +17,7 @@ import { logError } from '@/src/app/core/services/log/log'
 import { useRouter } from 'next/navigation'
 
 interface RealtimeChatProps {
+  userId: string
   roomName: string
   username: string
   onMessage?: (messages: ChatMessage[]) => void
@@ -25,6 +26,7 @@ interface RealtimeChatProps {
 
 /**
  * Realtime chat component
+ * @param userId - The session ID of the user
  * @param roomName - The name of the room to join. Each room is a unique chat.
  * @param username - The username of the user
  * @param onMessage - The callback function to handle the messages. Useful if you want to store the messages in a database.
@@ -32,6 +34,7 @@ interface RealtimeChatProps {
  * @returns The chat component
  */
 export const RealtimeChat = ({
+  userId,
   roomName,
   username,
   onMessage,
@@ -49,6 +52,7 @@ export const RealtimeChat = ({
   } = useRealtimeChat({
     roomName,
     username,
+    userId,
   })
   const [newMessage, setNewMessage] = useState('')
 
@@ -130,7 +134,7 @@ export const RealtimeChat = ({
         <div className="space-y-1">
           {allMessages.map((message, index) => {
             const prevMessage = index > 0 ? allMessages[index - 1] : null
-            const showHeader = !prevMessage || prevMessage.user.name !== message.user.name
+            const showHeader = !prevMessage || prevMessage.user.id !== message.user.id
 
             return (
               <div
@@ -139,7 +143,7 @@ export const RealtimeChat = ({
               >
                 <ChatMessageItem
                   message={message}
-                  isOwnMessage={message.user.name === username}
+                  isOwnMessage={message.user.id === userId}
                   showHeader={showHeader}
                 />
               </div>
