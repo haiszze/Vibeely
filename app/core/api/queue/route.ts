@@ -122,7 +122,7 @@ export async function POST(req: Request) {
       return json({ error: "Matched sessionId is not a UUID (bad data in match_queue)" }, { status: 500 })
     }
 
-    // MOVE TO ROOM — check count to guard against race conditions
+    // MOVE TO ROOM 
     const { error: deleteQueueError, count: deletedCount } = await cfg
       .from("match_queue")
       .delete({ count: "exact" })
@@ -136,7 +136,6 @@ export async function POST(req: Request) {
       return json({ error: deleteQueueError.message }, { status: 500 })
     }
 
-    // If we didn't delete exactly 2 rows, someone else already claimed the candidate
     if (deletedCount !== 2) {
       return json({ status: "waiting" })
     }
