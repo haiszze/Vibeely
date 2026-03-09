@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { InterestSelector } from "@/components/interest/interest-selector"
 import { setSession } from "@/app/core/services/session/session"
 import { logError } from "@/app/core/services/log/log"
+import { UserProp } from "../../core/model/userprop.model"
 
 export default function InterestPage() {
   const router = useRouter()
