@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
-import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { QueueStatus } from "../../enum/queue.enum"
 import { logError } from "../../services/log/log"
+import { createClient } from "../../services/supabase/client"
 
 export interface Body {
   sessionId?: string
@@ -21,16 +21,9 @@ function isUuid(value: string) {
   )
 }
 
-function getServiceClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) return null
-  return createSupabaseClient(url, key)
-}
-
 export async function POST(req: Request) {
   try {
-    const cfg = getServiceClient()
+    const cfg = createClient("servicerole");
 
     if (!cfg) {
       logError("queue: missing supabase config", "SUPABASE_URL or SERVICE_ROLE_KEY not set")
@@ -171,7 +164,7 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    const cfg = getServiceClient()
+    const cfg = createClient("servicerole")
 
     if (!cfg) {
       return json({ error: "Server misconfiguration" }, { status: 500 })
