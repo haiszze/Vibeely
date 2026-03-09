@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { QueueStatus } from "../../enum/queue.enum"
 import { logError } from "../../services/log/log"
-import { createClient } from "../../services/supabase/client"
 
-type Body = {
+export interface Body {
   sessionId?: string
   userProp?: {
     university?: string
@@ -21,23 +21,28 @@ function isUuid(value: string) {
   )
 }
 
+function getServiceClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return null
+  return createSupabaseClient(url, key)
+}
+
 export async function POST(req: Request) {
   try {
-    const cfg = createClient("servicerole")
-    if ("error" in cfg) {
-      logError("queue: missing supabase config", cfg.error)
-      return json({ error: String(cfg.error) }, { status: 500 })
+    const cfg = getServiceClient()
+
+    if (!cfg) {
+      logError("queue: missing supabase config", "SUPABASE_URL or SERVICE_ROLE_KEY not set")
+      return json({ error: "Server misconfiguration" }, { status: 500 })
     }
 
-    const body = (await req.json()) as Body
+    const body = (await req.json().catch(() => ({}))) as Body
 
     const sessionId = body?.sessionId
     const universityId = body?.userProp?.university
-    const interestIds = body?.userProp?.interests ?? []
+    const interestIds = body?.userProp?.interests
 
-    // ========================
-    // BASIC VALIDATION
-    // ========================
     if (!sessionId) return json({ error: "Missing sessionId" }, { status: 400 })
     if (!isUuid(sessionId)) return json({ error: "sessionId must be a UUID" }, { status: 400 })
     if (!universityId) return json({ error: "Missing userProp.university" }, { status: 400 })
@@ -45,9 +50,6 @@ export async function POST(req: Request) {
       return json({ error: "userProp.interests must be a non-empty array" }, { status: 400 })
     }
 
-    // ========================
-    // VALIDATION FOR EXISTING MATCH
-    // ========================
     const { data: existingRoom, error: existingRoomError } = await cfg
       .from("match_rooms")
       .select("room_id, session_1_id, session_2_id")
@@ -74,34 +76,11 @@ export async function POST(req: Request) {
       })
     }
 
-    // ========================
-    // UPSERT SESSION PROFILE
-    // ========================
-    const { error: sessionError } = await cfg
-      .from("match_sessions")
-      .upsert(
-        {
-          session_id: sessionId,
-          university_id: universityId,
-          interest_ids: interestIds,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "session_id" },
-      )
-
-    if (sessionError) {
-      logError("queue: match_sessions upsert failed", sessionError, { sessionId, universityId })
-      return json({ error: sessionError.message }, { status: 500 })
-    }
-
-    // ========================
-    // JOIN QUEUE
-    // ========================
+    // QUEUE START
     const { error: queueError } = await cfg
       .from("match_queue")
       .upsert(
-        { session_id: sessionId, university_id: universityId, interest_ids: interestIds },
-        { onConflict: "session_id" },
+        { session_id: sessionId, university_id: universityId, interest_ids: interestIds }
       )
 
     if (queueError) {
@@ -109,9 +88,7 @@ export async function POST(req: Request) {
       return json({ error: queueError.message }, { status: 500 })
     }
 
-    // ========================
-    //  QUEUE POLLING LOOP (POLL FOR MATCH)
-    // ========================
+    // MATCHING
     const { data: candidates, error: candidatesError } = await cfg
       .from("match_queue")
       .select("session_id, university_id, joined_at")
@@ -143,10 +120,8 @@ export async function POST(req: Request) {
       return json({ error: "Matched sessionId is not a UUID (bad data in match_queue)" }, { status: 500 })
     }
 
-    // ========================
-    // STEP 6: REMOVE BOTH FROM MATCH_QUEUE
-    // ========================
-    const { error: deleteQueueError } = await cfg
+    // MOVE TO ROOM — check count to guard against race conditions
+    const { error: deleteQueueError, count: deletedCount } = await cfg
       .from("match_queue")
       .delete({ count: "exact" })
       .in("session_id", [sessionId, matchedSessionId])
@@ -159,35 +134,32 @@ export async function POST(req: Request) {
       return json({ error: deleteQueueError.message }, { status: 500 })
     }
 
+    // If we didn't delete exactly 2 rows, someone else already claimed the candidate
+    if (deletedCount !== 2) {
+      return json({ status: "waiting" })
+    }
 
-    // ========================
-    // STEP 7: CREATE ROOM
-    // ========================
-    const session1 = sessionId < matchedSessionId ? sessionId : matchedSessionId
-    const session2 = sessionId < matchedSessionId ? matchedSessionId : sessionId
-
+    // CREATE ROOM BASED ON MATCH
     const { data: room, error: roomError } = await cfg
       .from("match_rooms")
-      .insert({ session_1_id: session1, session_2_id: session2 })
+      .insert({ session_1_id: sessionId, session_2_id: matchedSessionId })
       .select("room_id")
       .single()
 
     if (roomError || !room) {
       logError("queue: match_rooms insert failed", roomError ?? "Missing room", {
-        session1,
-        session2,
+        sessionId,
+        matchedSessionId,
       })
       return json({ error: roomError?.message ?? "Failed to create room" }, { status: 500 })
     }
 
-    // ========================
-    // STEP 8: RETURN MATCH RESULT
-    // ========================
     return json({
       status: "matched",
       roomId: room.room_id,
       matchedSessionId: matchedSessionId,
     })
+
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error"
     logError("queue: unhandled error", e, { message })
@@ -195,41 +167,28 @@ export async function POST(req: Request) {
   }
 }
 
-type DeleteBody = {
-  roomId?: string
-}
 
 export async function DELETE(req: Request) {
   try {
-    const cfg = createClient("servicerole")
+    const cfg = getServiceClient()
 
-    const body = (await req.json().catch(() => ({}))) as DeleteBody
+    if (!cfg) {
+      return json({ error: "Server misconfiguration" }, { status: 500 })
+    }
+
+    const body = (await req.json().catch(() => ({}))) as { roomId?: string }
     const roomId = body?.roomId
 
     if (!roomId) return json({ error: "Missing roomId" }, { status: 400 })
     if (!isUuid(roomId)) return json({ error: "roomId must be a UUID" }, { status: 400 })
 
-    const { data: room, error: roomLookupError } = await cfg
-      .from("match_rooms")
-      .select("session_1_id, session_2_id")
-      .eq("room_id", roomId)
-      .maybeSingle()
-
-    if (roomLookupError) return json({ error: roomLookupError.message }, { status: 500 })
-
+    // DELETE ROOM
     const { error: deleteRoomError } = await cfg
       .from("match_rooms")
       .delete()
       .eq("room_id", roomId)
 
     if (deleteRoomError) return json({ error: deleteRoomError.message }, { status: 500 })
-
-    if (room?.session_1_id && room?.session_2_id) {
-      const sessionIds = [String(room.session_1_id), String(room.session_2_id)]
-
-      await cfg.from("match_queue").delete().in("session_id", sessionIds)
-      await cfg.from("match_sessions").delete().in("session_id", sessionIds)
-    }
 
     return json({ status: "ok" })
   } catch (e) {
