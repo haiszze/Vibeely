@@ -5,7 +5,7 @@ import { RealtimeChat } from "@/components/supabase/realtime-chat"
 import { getSession } from "@/app/core/services/session/session"
 import { createClient } from "@/app/core/services/supabase/client"
 import { useRouter } from "next/navigation"
-import { QueueStatus } from "../../core/enum/queue.enum"
+import { QueueStatus } from "../core/enum/queue.enum"
 import { logError } from "@/app/core/services/log/log"
 
 const POLL_INTERVAL = 500
