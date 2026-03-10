@@ -142,7 +142,7 @@ export default function ChatPage() {
     <div className="h-screen flex items-center justify-center p-4">
       <div className="flex flex-col gap-3">
         <div className="w-full border border-gray-300">
-          <RealtimeChat roomName={roomId} username={session!.userProp.name} />
+          <RealtimeChat roomName={roomId} username={session!.userProp.name} userId={session!.sessionId}/>
         </div>
       </div>
     </div>
