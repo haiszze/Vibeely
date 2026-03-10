@@ -10,6 +10,7 @@ import { logError } from "@/src/app/core/services/log/log";
 import { joinQueue } from "@/src/app/core/services/queue/queue-client";
 
 const POLL_INTERVAL = 500;
+const KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
 
 export default function ChatPage() {
   const router = useRouter();
@@ -80,7 +81,7 @@ export default function ChatPage() {
         if (data.status === "matched" && data.roomId) {
           matched = true;
           stopped = true;
-          setRoomId(data.roomId);
+          setRoomId(`${data.roomId}${KEY}`);
           return;
         }
       } finally {
