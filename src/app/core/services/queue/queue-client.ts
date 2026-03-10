@@ -1,17 +1,11 @@
 import { QueueStatus } from "@/src/app/core/enum/queue.enum"
 import { logError } from "@/src/app/core/services/log/log"
 import { createClient } from "../supabase/client"
-
-interface QueueBody {
-    sessionId: string
-    userProp: {
-        interests: string[]
-        university: string
-    }
-}
+import { UserProp } from "../../model/userprop.model"
 
 export async function joinQueue(
-    body: QueueBody,
+    sessionId: string,
+    userProp: UserProp,
 ): Promise<QueueStatus | null> {
     try {
         const baseUrl = createClient()
@@ -20,7 +14,7 @@ export async function joinQueue(
             method: "POST",
             headers: { "Content-Type": "application/json" },
             cache: "no-store",
-            body: JSON.stringify(body),
+            body: JSON.stringify({sessionId, userProp}),
         })
 
         let data: QueueStatus
@@ -51,9 +45,6 @@ export async function joinQueue(
 
 export async function leaveRoom(roomId: string) {
     try {
-        const baseUrl =
-            process.env.NEXT_PUBLIC_SUPABASE_URL;
-
         await fetch("/api/queue", {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },

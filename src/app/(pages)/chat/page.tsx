@@ -10,7 +10,7 @@ import { logError } from "@/src/app/core/services/log/log";
 import { joinQueue } from "@/src/app/core/services/queue/queue-client";
 
 const POLL_INTERVAL = 500;
-const KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+const KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
 export default function ChatPage() {
   const router = useRouter();
@@ -68,12 +68,10 @@ export default function ChatPage() {
       inFlight = true;
 
       try {
-        const data = await joinQueue({
-          sessionId: currentSession.sessionId,
-          userProp: {
-            interests: currentSession.userProp.interests,
-            university: currentSession.userProp.university,
-          },
+        const data = await joinQueue(currentSession.sessionId, {
+          name: currentSession.userProp.name,
+          interests: currentSession.userProp.interests,
+          university: currentSession.userProp.university,
         });
 
         if (!data) return;
