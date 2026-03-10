@@ -69,7 +69,7 @@ export default function ChatPage() {
       inFlight = true
 
       try {
-        const res = await fetch("/core/api/queue", {
+        const res = await fetch("/api/queue", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           cache: "no-store",

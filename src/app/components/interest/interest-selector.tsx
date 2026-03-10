@@ -1,8 +1,11 @@
-import React from 'react'
+"use client"
+
+import React, { useEffect, useState } from 'react'
 import { Button } from '@/src/app/components/ui/button'
 import { Input } from '@/src/app/components/ui/input'
 import { Label } from '@/src/app/components/ui/label'
 import { UserProp } from '../../core/model/userprop.model'
+import { University } from '../../core/model/universityprop.model'
 import {
   Select,
   SelectContent,
@@ -34,24 +37,38 @@ const INTERESTS = [
   { id: 'books', label: 'Books & Literature' },
 ]
 
-const UNIVERSITIES = [
-  { id: 'up', label: 'University of the Philippines' },
-  { id: 'ateneo', label: 'Ateneo de Manila University' },
-  { id: 'dlsu', label: 'De La Salle University' },
-  { id: 'ust', label: 'University of Santo Tomas' },
-  { id: 'mapua', label: 'Mapúa University' },
-  { id: 'pup', label: 'Polytechnic University of the Philippines' },
-  { id: 'admu', label: 'Adamson University' },
-]
-
 export function InterestSelector({
   onInterestsSelect,
   maxSelections = 5,
   loading = false,
 }: InterestSelectorProps) {
-  const [selected, setSelected] = React.useState<string[]>([])
-  const [selectedUniversity, setSelectedUniversity] = React.useState<string>('')
-  const [name, setName] = React.useState<string>('')
+  const [selected, setSelected] = useState<string[]>([])
+  const [universities, setUniversities] = useState<University[]>([])
+  const [selectedUniversity, setSelectedUniversity] = useState<string>('')
+  const [name, setName] = useState<string>('')
+
+  useEffect(() => {
+    const loadUniversities = async () => {
+      try {
+        const response = await fetch('/api/university', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-store',
+        })
+
+        if (!response.ok) {
+          throw new Error(`Failed to load universities: ${response.status}`)
+        }
+
+        const data = (await response.json()) as University[]
+
+        setUniversities(data)
+      } catch (error) {
+        console.error('Failed to load universities', error)
+      }
+    }
+    loadUniversities()
+  }, [])
 
   const handleToggle = (id: string) => {
     setSelected((prev) => {
@@ -100,10 +117,10 @@ export function InterestSelector({
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Choose your university..." />
           </SelectTrigger>
-          <SelectContent>
-            {UNIVERSITIES.map((uni) => (
-              <SelectItem key={uni.id} value={uni.id}>
-                {uni.label}
+          <SelectContent className="max-h-60 overflow-y-auto">
+            {universities.map((uni) => (
+              <SelectItem key={uni.key} value={uni.key}>
+                {uni.value}
               </SelectItem>
             ))}
           </SelectContent>

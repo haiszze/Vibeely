@@ -1,16 +1,12 @@
-import { NextResponse } from "next/server"
-import { QueueStatus } from "../../enum/queue.enum"
-import { logError } from "../../services/log/log"
-import { createClient } from "../../services/supabase/client"
-import { UserProp } from "../../model/userprop.model"
+'use server'
+
+import { json, logError } from "../../core/services/log/log"
+import { UserProp } from "../../core/model/userprop.model"
+import { createBrowserClient } from "@supabase/ssr"
 
 export interface Body {
   sessionId?: string
   userProp?: UserProp
-}
-
-function json(data: QueueStatus, init?: ResponseInit) {
-  return NextResponse.json(data, init)
 }
 
 function isUuid(value: string) {
@@ -19,9 +15,14 @@ function isUuid(value: string) {
   )
 }
 
+function createClient() {
+  return createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+}
+
+
 export async function POST(req: Request) {
   try {
-    const cfg = createClient("servicerole");
+    const cfg = createClient()
 
     if (!cfg) {
       logError("queue: missing supabase config", "SUPABASE_URL or SERVICE_ROLE_KEY not set")
@@ -162,7 +163,7 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    const cfg = createClient("servicerole")
+    const cfg = createClient()
 
     if (!cfg) {
       return json({ error: "Server misconfiguration" }, { status: 500 })

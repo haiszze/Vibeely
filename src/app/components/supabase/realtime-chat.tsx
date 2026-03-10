@@ -92,7 +92,7 @@ export const RealtimeChat = ({
       try {
         await Promise.allSettled([
           notifyPartnerLeft(),
-          fetch('/core/api/queue', {
+          fetch('/api/queue', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             cache: 'no-store',
