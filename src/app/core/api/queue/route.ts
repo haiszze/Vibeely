@@ -2,13 +2,11 @@ import { NextResponse } from "next/server"
 import { QueueStatus } from "../../enum/queue.enum"
 import { logError } from "../../services/log/log"
 import { createClient } from "../../services/supabase/client"
+import { UserProp } from "../../model/userprop.model"
 
 export interface Body {
   sessionId?: string
-  userProp?: {
-    university?: string
-    interests?: string[]
-  }
+  userProp?: UserProp
 }
 
 function json(data: QueueStatus, init?: ResponseInit) {
