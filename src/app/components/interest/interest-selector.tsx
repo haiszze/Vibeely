@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/src/app/components/ui/select'
+import { UserProp } from '../../core/model/userprop.model'
 
 interface InterestSelectorProps {
   onInterestsSelect: (interestPageProps: UserProp) => void | Promise<void>
