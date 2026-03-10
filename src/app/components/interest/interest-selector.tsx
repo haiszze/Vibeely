@@ -2,6 +2,7 @@ import React from 'react'
 import { Button } from '@/src/app/components/ui/button'
 import { Input } from '@/src/app/components/ui/input'
 import { Label } from '@/src/app/components/ui/label'
+import { UserProp } from '../../core/model/userprop.model'
 import {
   Select,
   SelectContent,
@@ -9,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/src/app/components/ui/select'
-import { UserProp } from '../../core/model/userprop.model'
+
 
 interface InterestSelectorProps {
   onInterestsSelect: (interestPageProps: UserProp) => void | Promise<void>
