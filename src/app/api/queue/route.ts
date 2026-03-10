@@ -66,7 +66,6 @@ export async function POST(req: Request) {
       return json({
         status: "matched",
         roomId: existingRoom.room_id,
-        matchedSessionId: alreadyMatchedId,
       })
     }
 
@@ -150,7 +149,6 @@ export async function POST(req: Request) {
     return json({
       status: "matched",
       roomId: room.room_id,
-      matchedSessionId: matchedSessionId,
     })
 
   } catch (e) {
