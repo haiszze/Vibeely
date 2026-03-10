@@ -81,7 +81,6 @@ export const RealtimeChat = ({
     if (!hasPartnerLeft) return
 
     removeSession()
-    router.replace('/interest')
   }, [hasPartnerLeft, router])
 
   const handleExit = useCallback(() => {
