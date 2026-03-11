@@ -92,13 +92,13 @@ export async function notifyQueueMatch(
   }
 }
 
-export async function leaveRoom(roomId: string) {
+export async function leaveRoom(sessionId: string) {
   try {
     await fetch("/api/queue", {
-      method: "DELETE",
+      method: "POST",
       headers: { "Content-Type": "application/json" },
       cache: "no-store",
-      body: JSON.stringify({ roomId }),
+      body: JSON.stringify({ action: "unqueue", sessionId }),
     })
   } catch (e) {
     logError("queue: leave room failed", e)
