@@ -48,8 +48,7 @@ export const RealtimeChat = ({
     messages: realtimeMessages,
     sendMessage,
     isConnected,
-    hasPartnerLeft,
-    notifyPartnerLeft,
+    hasPartnerLeft
   } = useRealtimeChat({
     roomName,
     username,
@@ -83,22 +82,19 @@ export const RealtimeChat = ({
 
   useEffect(() => {
     if (!hasPartnerLeft) return;
-
-    removeSession();
   }, [hasPartnerLeft, router]);
 
   const handleExit = useCallback(() => {
-    removeSession();
     router.replace("/interest");
 
     void (async () => {
       try {
-        await Promise.allSettled([notifyPartnerLeft(), leaveRoom(roomName)]);
+        await Promise.allSettled([leaveRoom(roomName)]);
       } catch {
         logError("room: exit cleanup failed");
       }
     })();
-  }, [notifyPartnerLeft, roomName, router]);
+  }, [roomName, router]);
 
   const handleSendMessage = useCallback(
     (e: React.FormEvent) => {

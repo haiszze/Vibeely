@@ -9,11 +9,14 @@ import {
   notifyQueueMatch,
   subscribeToQueueMatch,
 } from "@/src/app/core/services/api/queue/queue-client";
+import { Loading } from "../../components/loading/loading";
 
 export default function ChatPage() {
   const router = useRouter();
 
-  const [session, setSession] = useState<ReturnType<typeof getSession> | undefined>(undefined);
+  const [session, setSession] = useState<
+    ReturnType<typeof getSession> | undefined
+  >(undefined);
   const [roomId, setRoomId] = useState<string | null>(null);
   const [broadcastReady, setBroadcastReady] = useState(false);
 
@@ -66,8 +69,7 @@ export default function ChatPage() {
         if (data.matchedSessionId) {
           await notifyQueueMatch(data.matchedSessionId, {
             roomId: data.roomId,
-            matchedSessionId: session!.sessionId,
-            createdAt: new Date().toISOString(),
+            matchedSessionId: session?.sessionId,
           });
         }
 
@@ -83,13 +85,45 @@ export default function ChatPage() {
     };
   }, [broadcastReady, roomId, session]);
 
+  useEffect(() => {
+    if (!session) return;
+
+    const leave = () => {
+      navigator.sendBeacon(
+        "/api/queue",
+        new Blob(
+          [
+            JSON.stringify({
+              action: "leave",
+              sessionId: session.sessionId,
+              roomId,
+            }),
+          ],
+          { type: "application/json" },
+        ),
+      );
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        leave();
+      }
+    };
+
+    window.addEventListener("beforeunload", leave);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("beforeunload", leave);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [session, roomId]);
+
   if (session === null) return null;
 
   if (!roomId) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div>Finding a match...</div>
-      </div>
+      <Loading />
     );
   }
 

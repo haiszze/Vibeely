@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import React, { useEffect, useState } from "react";
 import { Button } from "@/src/app/components/ui/button";
@@ -45,6 +45,20 @@ export function InterestSelector({
   const [universities, setUniversities] = useState<University[]>([])
   const [selectedUniversity, setSelectedUniversity] = useState<string>("");
   const [name, setName] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const sessionRaw = window.sessionStorage.getItem("session");
+      if (sessionRaw) {
+        try {
+          const session = JSON.parse(sessionRaw);
+          setSelected(session.userProp?.interests || []);
+          setSelectedUniversity(session.userProp?.university || "");
+          setName(session.userProp?.name || "");
+        } catch {}
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const load = async () => {

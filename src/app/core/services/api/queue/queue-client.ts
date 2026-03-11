@@ -2,7 +2,6 @@ import { QueueStatus } from "@/src/app/core/enum/queue.enum"
 import { logError } from "@/src/app/core/services/log/log"
 import { createClient } from "../../supabase/client"
 import { UserProp } from "../../../model/userprop.model"
-import { QueueMatchPayload } from "../../../model/queueprop.model"
 
 const MATCH_EVENT_TYPE = "match"
 
@@ -16,14 +15,9 @@ async function parseQueueResponse(res: Response): Promise<QueueStatus | null> {
     return null
   }
 
-  if (!res.ok) {
-    logError("queue: http error", "error" in data ? data.error : `HTTP ${res.status}`)
-    return null
-  }
-
   if ("error" in data) {
     logError("queue: api error", data.error)
-    return null
+    return data
   }
 
   return data
@@ -50,7 +44,7 @@ export async function joinQueue(
 
 export function subscribeToQueueMatch(
   sessionId: string,
-  onMatch: (payload: QueueMatchPayload) => void,
+  onMatch: (payload: QueueStatus) => void,
   onStatusChange?: (status: string) => void,
 ) {
   const supabase = createClient()
@@ -63,7 +57,7 @@ export function subscribeToQueueMatch(
         return
       }
 
-      onMatch(payload.payload as QueueMatchPayload)
+      onMatch(payload.payload as QueueStatus)
     })
 
   channel.subscribe((status) => {
@@ -77,7 +71,7 @@ export function subscribeToQueueMatch(
 
 export async function notifyQueueMatch(
   targetSessionId: string,
-  payload: QueueMatchPayload,
+  payload: QueueStatus,
 ) {
   const supabase = createClient()
   const channel = supabase.channel(targetSessionId)

@@ -29,7 +29,11 @@ type PartnerLeftPayload = {
 const EVENT_MESSAGE_TYPE = "message";
 const EVENT_PARTNER_LEFT_TYPE = "partner-left";
 
-export function useRealtimeChat({ roomName, username, userId }: UseRealtimeChatProps) {
+export function useRealtimeChat({
+  roomName,
+  username,
+  userId,
+}: UseRealtimeChatProps) {
   const supabase = createClient();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
@@ -40,19 +44,38 @@ export function useRealtimeChat({ roomName, username, userId }: UseRealtimeChatP
     setIsConnected(false);
     setHasPartnerLeft(false);
 
-    const newChannel = supabase.channel(roomName);
+    const newChannel = supabase.channel(roomName, {
+      config: { presence: { key: userId } },
+    });
+
+    // Message listener
+    newChannel.on("broadcast", { event: EVENT_MESSAGE_TYPE }, (payload) => {
+      setMessages((current) => [...current, payload.payload as ChatMessage]);
+    });
+
+    // Presence handling
+    const trackUser = async () => {
+      await newChannel.track({
+        userId,
+        username,
+        online_at: new Date().toISOString(),
+      });
+    };
 
     newChannel
-      .on("broadcast", { event: EVENT_MESSAGE_TYPE }, (payload) => {
-        setMessages((current) => [...current, payload.payload as ChatMessage]);
-      })
-      .on("broadcast", { event: EVENT_PARTNER_LEFT_TYPE }, () => {
-        setHasPartnerLeft(true);
-        setIsConnected(false);
+      .on("presence", { event: "leave" }, (payload) => {
+        const leftUsers = payload.leftPresences.map((p) => p.key);
+        const partnerLeft = leftUsers.some((id) => id !== userId);
+
+        if (partnerLeft) {
+          setHasPartnerLeft(true);
+          setIsConnected(false);
+        }
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           setIsConnected(true);
+          await trackUser();
         } else if (status === "CLOSED" || status === "CHANNEL_ERROR") {
           setIsConnected(false);
         }
@@ -63,7 +86,7 @@ export function useRealtimeChat({ roomName, username, userId }: UseRealtimeChatP
     return () => {
       supabase.removeChannel(newChannel);
     };
-  }, [roomName, supabase]);
+  }, [roomName, supabase, userId, username]);
 
   const sendMessage = useCallback(
     async (content: string) => {
@@ -90,26 +113,10 @@ export function useRealtimeChat({ roomName, username, userId }: UseRealtimeChatP
     [channel, isConnected, hasPartnerLeft, username, userId],
   );
 
-  const notifyPartnerLeft = useCallback(async () => {
-    if (!channel) return;
-
-    const payload: PartnerLeftPayload = {
-      username,
-      createdAt: new Date().toISOString(),
-    };
-
-    await channel.send({
-      type: "broadcast",
-      event: EVENT_PARTNER_LEFT_TYPE,
-      payload,
-    });
-  }, [channel, username]);
-
   return {
     messages,
     sendMessage,
     isConnected: isConnected && !hasPartnerLeft,
-    hasPartnerLeft,
-    notifyPartnerLeft,
+    hasPartnerLeft
   };
 }
