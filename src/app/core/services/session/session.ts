@@ -10,7 +10,7 @@ export interface Session {
 export function getSession(): Session | null {
   if (typeof window === 'undefined') return null
   
-  const sessionData = localStorage.getItem('session')
+  const sessionData = window.sessionStorage.getItem('session')
   if (!sessionData) return null
   return JSON.parse(sessionData) as Session
 }
@@ -22,13 +22,13 @@ export function setSession(user: UserProp): Session {
     createdAt: new Date(),
   }
   if (typeof window !== 'undefined') {
-    localStorage.setItem('session', JSON.stringify(session))
+    window.sessionStorage.setItem('session', JSON.stringify(session))
   }
   return session
 }
 
 export function removeSession(): void {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('session')
+    window.sessionStorage.removeItem('session')
   }
 }
