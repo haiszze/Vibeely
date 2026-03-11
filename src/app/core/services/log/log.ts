@@ -1,3 +1,8 @@
+import { NextResponse } from "next/server"
+import { QueueStatus } from "../../enum/queue.enum"
+import { University } from "../../model/userprop.model"
+
+
 export type LogContext = Record<string, unknown>
 export type LogLevel = "info" | "warn" | "error"
 
@@ -106,4 +111,8 @@ export function logWarn(message: string, context?: LogContext) {
 
 export function logInfo(message: string, context?: LogContext) {
   void baseLog("info", message, undefined, context)
+}
+
+export function json(data: QueueStatus | University[], init?: ResponseInit) {
+  return NextResponse.json(data, init)
 }
