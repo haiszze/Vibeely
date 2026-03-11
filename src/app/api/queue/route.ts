@@ -63,6 +63,7 @@ export async function POST(req: Request) {
       return json({ error: "Server misconfiguration" }, { status: 500 })
     }
 
+
     const body = await req.json().catch(() => ({}))
     const action = body?.action
 
@@ -91,6 +92,16 @@ export async function POST(req: Request) {
     const sessionId = body!.sessionId
     const universityId = body!.userProp!.university
     const interestIds = body!.userProp!.interests
+
+    const { data: activeSession, error: activeSessionError } = await cfg
+      .from("match_queue")
+      .select("session_id")
+      .eq("session_id", sessionId)
+      .maybeSingle();
+
+    if (activeSession) {
+      return json({ error: "Session already active. Only one session per browser/user allowed." }, { status: 429 });
+    }
 
     // VALIDATION
     if (!sessionId) return json({ error: "Missing sessionId" }, { status: 400 })

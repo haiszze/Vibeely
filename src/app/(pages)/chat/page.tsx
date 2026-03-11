@@ -68,8 +68,7 @@ export default function ChatPage() {
         if (data.matchedSessionId) {
           await notifyQueueMatch(data.matchedSessionId, {
             roomId: data.roomId,
-            matchedSessionId: session!.sessionId,
-            createdAt: new Date().toISOString(),
+            matchedSessionId: session?.sessionId,
           });
         }
 
