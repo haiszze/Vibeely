@@ -72,7 +72,7 @@ export async function POST(req: Request) {
       const sessionId = body?.sessionId
       const roomId = body?.roomId
 
-      if (sessionId) {
+      if (sessionId && (action === "leave" || action === "unqueue")) {
         await cfg
           .from("match_queue")
           .delete()

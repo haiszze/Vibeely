@@ -2,11 +2,20 @@
 
 import { Spinner } from "@/src/app/components/ui/spinner";
 import { Button } from "../ui/button";
-import { Locate } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getSession } from "../../core/services/session/session";
+import { leaveRoom } from "../../core/services/api/queue/queue-client";
 
 export function Loading() {
   const router = useRouter();
+
+  const handleBack = async () => {
+    const session = getSession();
+    if (session) {
+      await leaveRoom(session.sessionId);
+    }
+    router.push("/interest");
+  }
 
   return (
     <div className="flex flex-col gap-4 items-center justify-center h-screen">
@@ -18,7 +27,7 @@ export function Loading() {
           size="sm"
           type="button"
           className="p-3"
-          onClick={() => router.push("/interest")}
+          onClick={handleBack}
         >
           Back
         </Button>
