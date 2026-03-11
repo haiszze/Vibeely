@@ -44,7 +44,7 @@ export function useRealtimeChat({
     setIsConnected(false);
     setHasPartnerLeft(false);
 
-    const newChannel = supabase.channel(`room:${roomName}`, {
+    const newChannel = supabase.channel(roomName, {
       config: { presence: { key: userId } },
     });
 
