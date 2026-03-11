@@ -41,26 +41,24 @@ export function InterestSelector({
   maxSelections = 5,
   loading = false,
 }: InterestSelectorProps) {
+  const [selected, setSelected] = useState<string[]>([]);
+  const [universities, setUniversities] = useState<University[]>([])
+  const [selectedUniversity, setSelectedUniversity] = useState<string>("");
+  const [name, setName] = useState<string>("");
 
-const { interests, university, name: initialName } = getSessionDefaults();
-const [selected, setSelected] = useState<string[]>(interests);
-const [universities, setUniversities] = useState<University[]>([]);
-const [selectedUniversity, setSelectedUniversity] = useState<string>(university);
-const [name, setName] = useState<string>(initialName);
-
-  function getSessionDefaults() {
-    if (typeof window === "undefined") return { interests: [], university: "", name: "" };
-    try {
-      const session = JSON.parse(window.sessionStorage.getItem("session") || "{}");
-      return {
-        interests: session.userProp?.interests || [],
-        university: session.userProp?.university || "",
-        name: session.userProp?.name || "",
-      };
-    } catch {
-      return { interests: [], university: "", name: "" };
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const sessionRaw = window.sessionStorage.getItem("session");
+      if (sessionRaw) {
+        try {
+          const session = JSON.parse(sessionRaw);
+          setSelected(session.userProp?.interests || []);
+          setSelectedUniversity(session.userProp?.university || "");
+          setName(session.userProp?.name || "");
+        } catch {}
+      }
     }
-  }
+  }, []);
 
   useEffect(() => {
     const load = async () => {
