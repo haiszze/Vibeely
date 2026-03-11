@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import React, { useEffect, useState } from "react";
 import { Button } from "@/src/app/components/ui/button";
@@ -41,10 +41,26 @@ export function InterestSelector({
   maxSelections = 5,
   loading = false,
 }: InterestSelectorProps) {
-  const [selected, setSelected] = useState<string[]>([]);
-  const [universities, setUniversities] = useState<University[]>([])
-  const [selectedUniversity, setSelectedUniversity] = useState<string>("");
-  const [name, setName] = useState<string>("");
+
+const { interests, university, name: initialName } = getSessionDefaults();
+const [selected, setSelected] = useState<string[]>(interests);
+const [universities, setUniversities] = useState<University[]>([]);
+const [selectedUniversity, setSelectedUniversity] = useState<string>(university);
+const [name, setName] = useState<string>(initialName);
+
+  function getSessionDefaults() {
+    if (typeof window === "undefined") return { interests: [], university: "", name: "" };
+    try {
+      const session = JSON.parse(window.sessionStorage.getItem("session") || "{}");
+      return {
+        interests: session.userProp?.interests || [],
+        university: session.userProp?.university || "",
+        name: session.userProp?.name || "",
+      };
+    } catch {
+      return { interests: [], university: "", name: "" };
+    }
+  }
 
   useEffect(() => {
     const load = async () => {
