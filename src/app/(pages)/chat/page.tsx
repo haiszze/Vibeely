@@ -9,6 +9,7 @@ import {
   notifyQueueMatch,
   subscribeToQueueMatch,
 } from "@/src/app/core/services/api/queue/queue-client";
+import { Loading } from "../../components/loading/loading";
 
 export default function ChatPage() {
   const router = useRouter();
@@ -122,9 +123,7 @@ export default function ChatPage() {
 
   if (!roomId) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div>Finding a match...</div>
-      </div>
+      <Loading />
     );
   }
 
