@@ -64,7 +64,30 @@ export async function POST(req: Request) {
     }
 
 
-    const body = (await req.json().catch(() => ({}))) as Body
+    const body = await req.json().catch(() => ({}))
+    const action = body?.action
+
+    // HANDLE TAB CLOSE / REFRESH
+    if (action === "leave") {
+      const sessionId = body?.sessionId
+      const roomId = body?.roomId
+
+      if (sessionId) {
+        await cfg
+          .from("match_queue")
+          .delete()
+          .eq("session_id", sessionId)
+      }
+
+      if (roomId) {
+        await cfg
+          .from("match_rooms")
+          .delete()
+          .eq("room_id", roomId)
+      }
+
+      return json({ status: "ok" })
+    }
 
     const sessionId = body!.sessionId
     const universityId = body!.userProp!.university

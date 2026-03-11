@@ -14,7 +14,9 @@ import { Loading } from "../../components/loading/loading";
 export default function ChatPage() {
   const router = useRouter();
 
-  const [session, setSession] = useState<ReturnType<typeof getSession> | undefined>(undefined);
+  const [session, setSession] = useState<
+    ReturnType<typeof getSession> | undefined
+  >(undefined);
   const [roomId, setRoomId] = useState<string | null>(null);
   const [broadcastReady, setBroadcastReady] = useState(false);
 
@@ -82,6 +84,40 @@ export default function ChatPage() {
       cancelled = true;
     };
   }, [broadcastReady, roomId, session]);
+
+  useEffect(() => {
+    if (!session) return;
+
+    const leave = () => {
+      navigator.sendBeacon(
+        "/api/queue",
+        new Blob(
+          [
+            JSON.stringify({
+              action: "leave",
+              sessionId: session.sessionId,
+              roomId,
+            }),
+          ],
+          { type: "application/json" },
+        ),
+      );
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        leave();
+      }
+    };
+
+    window.addEventListener("beforeunload", leave);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("beforeunload", leave);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [session, roomId]);
 
   if (session === null) return null;
 
