@@ -15,7 +15,7 @@ import { Input } from "@/src/app/components/ui/input";
 import { removeSession } from "@/src/app/core/services/session/session";
 import { logError } from "@/src/app/core/services/log/log";
 import { useRouter } from "next/navigation";
-import { leaveRoom } from "@/src/app/core/services/queue/queue-client";
+import { leaveRoom } from "@/src/app/core/services/api/queue/queue-client";
 
 interface RealtimeChatProps {
   userId: string;

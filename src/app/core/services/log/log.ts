@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { QueueStatus } from "../../enum/queue.enum"
-import { University } from "../../model/universityprop.model"
+import { University } from "../../model/userprop.model"
+
 
 export type LogContext = Record<string, unknown>
 export type LogLevel = "info" | "warn" | "error"

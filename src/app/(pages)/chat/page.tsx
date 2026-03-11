@@ -3,22 +3,17 @@
 import { useEffect, useState } from "react";
 import { RealtimeChat } from "@/src/app/components/supabase/realtime-chat";
 import { getSession } from "@/src/app/core/services/session/session";
-import { createClient } from "@/src/app/core/services/supabase/client";
 import { useRouter } from "next/navigation";
-import { QueueStatus } from "../../core/enum/queue.enum";
-import { logError } from "@/src/app/core/services/log/log";
-import { joinQueue } from "@/src/app/core/services/queue/queue-client";
-
-const POLL_INTERVAL = 500;
-const KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+import {
+  joinQueue,
+  notifyQueueMatch,
+  subscribeToQueueMatch,
+} from "@/src/app/core/services/api/queue/queue-client";
 
 export default function ChatPage() {
   const router = useRouter();
-  const supabase = createClient();
 
-  const [session, setSession] = useState<
-    ReturnType<typeof getSession> | undefined
-  >(undefined);
+  const [session, setSession] = useState<ReturnType<typeof getSession> | undefined>(undefined);
   const [roomId, setRoomId] = useState<string | null>(null);
   const [broadcastReady, setBroadcastReady] = useState(false);
 
@@ -30,71 +25,61 @@ export default function ChatPage() {
     if (session === null) router.replace("/interest");
   }, [session, router]);
 
-  // Subscribe to match broadcasts for instant notification
   useEffect(() => {
     if (!session || roomId) return;
 
-    const channel = supabase
-      .channel(`match-notify:${session.sessionId}`)
-      .on("broadcast", { event: "match" }, (payload) => {
-        const nextRoomId = payload.payload?.roomId;
+    const unsubscribe = subscribeToQueueMatch(
+      session.sessionId,
+      (payload) => {
+        const nextRoomId = payload.roomId;
         if (typeof nextRoomId === "string") {
           setRoomId(nextRoomId);
         }
-      })
-      .subscribe((status) => {
+      },
+      (status) => {
         if (status === "SUBSCRIBED" || status === "CHANNEL_ERROR") {
           setBroadcastReady(true);
         }
-      });
+      },
+    );
 
     return () => {
-      void supabase.removeChannel(channel);
+      unsubscribe();
     };
-  }, [roomId, session, supabase]);
+  }, [roomId, session]);
 
-  // Poll queue with fallback to broadcast
   useEffect(() => {
     if (!session || roomId || !broadcastReady) return;
 
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    let stopped = false;
-    let inFlight = false;
-    let matched = false;
-    const currentSession = session;
+    let cancelled = false;
 
-    async function tick() {
-      if (stopped || inFlight) return;
-      inFlight = true;
+    async function sessionQueue() {
+      const data = await joinQueue(session!.sessionId, {
+        name: session!.userProp.name,
+        interests: session!.userProp.interests,
+        university: session!.userProp.university,
+      });
 
-      try {
-        const data = await joinQueue(currentSession.sessionId, {
-          name: currentSession.userProp.name,
-          interests: currentSession.userProp.interests,
-          university: currentSession.userProp.university,
-        });
+      if (!data) return;
 
-        if (!data) return;
-
-        if (data.status === "matched" && data.roomId) {
-          matched = true;
-          stopped = true;
-          setRoomId(`${data.roomId}${KEY}`);
-          return;
+      if (data.status === "matched" && data.roomId) {
+        if (data.matchedSessionId) {
+          await notifyQueueMatch(data.matchedSessionId, {
+            roomId: data.roomId,
+            matchedSessionId: session!.sessionId,
+            createdAt: new Date().toISOString(),
+          });
         }
-      } finally {
-        inFlight = false;
-        if (!stopped && !matched) {
-          timer = setTimeout(tick, POLL_INTERVAL);
-        }
+
+        setRoomId(data.roomId);
+        return;
       }
     }
 
-    tick();
+    void sessionQueue();
 
     return () => {
-      stopped = true;
-      if (timer) clearTimeout(timer);
+      cancelled = true;
     };
   }, [broadcastReady, roomId, session]);
 

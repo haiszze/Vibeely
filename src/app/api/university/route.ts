@@ -1,6 +1,4 @@
-"use server"
-import { NextResponse } from "next/server"
-import { University } from "../../core/model/universityprop.model"
+import { University } from "../../core/model/userprop.model";
 import { json, logError } from "../../core/services/log/log"
 
 import { createBrowserClient } from "@supabase/ssr"

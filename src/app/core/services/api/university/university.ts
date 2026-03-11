@@ -1,4 +1,4 @@
-import { University } from '@/src/app/core/model/universityprop.model'
+import { University } from "../../../model/userprop.model"
 
 export async function getUniversities(): Promise<University[]> {
   const res = await fetch('/api/university', {

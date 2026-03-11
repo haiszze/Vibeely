@@ -3,6 +3,7 @@
 import { json, logError } from "../../core/services/log/log"
 import { UserProp } from "../../core/model/userprop.model"
 import { createBrowserClient } from "@supabase/ssr"
+import { ExistingRoom } from "../../core/model/queueprop.model"
 
 export interface Body {
   sessionId?: string
@@ -19,6 +20,39 @@ function createClient() {
   return createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 }
 
+function toMatchedResponse(existingRoom: ExistingRoom, sessionId: string) {
+  const matchedSessionId =
+    existingRoom.session_1_id === sessionId
+      ? existingRoom.session_2_id
+      : existingRoom.session_1_id
+
+  return {
+    status: "matched" as const,
+    roomId: existingRoom.room_id,
+    matchedSessionId,
+  }
+}
+
+async function getExistingRoom(cfg: ReturnType<typeof createClient>, sessionId: string) {
+  const { data: existingRoom, error: existingRoomError } = await cfg
+    .from("match_rooms")
+    .select("room_id, session_1_id, session_2_id")
+    .or(`session_1_id.eq.${sessionId},session_2_id.eq.${sessionId}`)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle<ExistingRoom>()
+
+  if (existingRoomError) {
+    logError("queue: existing room lookup failed", existingRoomError, { sessionId })
+    return { error: existingRoomError.message }
+  }
+
+  if (!existingRoom) {
+    return { room: null }
+  }
+
+  return { room: toMatchedResponse(existingRoom, sessionId) }
+}
 
 export async function POST(req: Request) {
   try {
@@ -31,9 +65,9 @@ export async function POST(req: Request) {
 
     const body = (await req.json().catch(() => ({}))) as Body
 
-    const sessionId = body?.sessionId
-    const universityId = body?.userProp?.university
-    const interestIds = body?.userProp?.interests
+    const sessionId = body!.sessionId
+    const universityId = body!.userProp!.university
+    const interestIds = body!.userProp!.interests
 
     // VALIDATION
     if (!sessionId) return json({ error: "Missing sessionId" }, { status: 400 })
@@ -43,30 +77,14 @@ export async function POST(req: Request) {
       return json({ error: "userProp.interests must be a non-empty array" }, { status: 400 })
     }
 
-    // EXISTING ROOM CHECK
-    const { data: existingRoom, error: existingRoomError } = await cfg
-      .from("match_rooms")
-      .select("room_id, session_1_id, session_2_id")
-      .or(`session_1_id.eq.${sessionId},session_2_id.eq.${sessionId}`)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    const existingRoom = await getExistingRoom(cfg, sessionId)
 
-    if (existingRoomError) {
-      logError("queue: existing room lookup failed", existingRoomError, { sessionId })
-      return json({ error: existingRoomError.message }, { status: 500 })
+    if ("error" in existingRoom) {
+      return json({ error: existingRoom.error }, { status: 500 })
     }
 
-    if (existingRoom) {
-      const alreadyMatchedId =
-        existingRoom.session_1_id === sessionId
-          ? existingRoom.session_2_id
-          : existingRoom.session_1_id
-
-      return json({
-        status: "matched",
-        roomId: existingRoom.room_id,
-      })
+    if (existingRoom.room) {
+      return json(existingRoom.room)
     }
 
     // QUEUE START
@@ -149,6 +167,7 @@ export async function POST(req: Request) {
     return json({
       status: "matched",
       roomId: room.room_id,
+      matchedSessionId,
     })
 
   } catch (e) {
