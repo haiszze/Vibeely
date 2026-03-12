@@ -89,7 +89,7 @@ export const RealtimeChat = ({
     
     void (async () => {
       try {
-        await Promise.allSettled([clearMatchTables(userId, roomName)]);
+        await Promise.allSettled([clearMatchTables(null, roomName)]);
       } catch {
         logError("room: exit cleanup failed");
       }

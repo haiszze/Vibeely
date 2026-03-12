@@ -92,7 +92,7 @@ export async function notifyQueueMatch(
   }
 }
 
-export async function clearMatchTables(sessionId: string, roomId?:string ) {
+export async function clearMatchTables(sessionId?: string | null, roomId?: string | null ) {
   try {
     await fetch("/api/queue", {
       method: "POST",
