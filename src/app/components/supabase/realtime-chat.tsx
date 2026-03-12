@@ -15,7 +15,7 @@ import { Input } from "@/src/app/components/ui/input";
 import { removeSession } from "@/src/app/core/services/session/session";
 import { logError } from "@/src/app/core/services/log/log";
 import { useRouter } from "next/navigation";
-import { leaveRoom } from "@/src/app/core/services/api/queue/queue-client";
+import { clearMatchTables } from "@/src/app/core/services/api/queue/queue-client";
 
 interface RealtimeChatProps {
   userId: string;
@@ -86,15 +86,15 @@ export const RealtimeChat = ({
 
   const handleExit = useCallback(() => {
     router.replace("/interest");
-
+    
     void (async () => {
       try {
-        await Promise.allSettled([leaveRoom(roomName)]);
+        await Promise.allSettled([clearMatchTables(userId, roomName)]);
       } catch {
         logError("room: exit cleanup failed");
       }
     })();
-  }, [roomName, router]);
+  }, [userId, roomName, router]);
 
   const handleSendMessage = useCallback(
     (e: React.FormEvent) => {

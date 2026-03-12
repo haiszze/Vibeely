@@ -92,28 +92,19 @@ export async function notifyQueueMatch(
   }
 }
 
-export async function leaveRoom(sessionId: string) {
+export async function clearMatchTables(sessionId: string, roomId?:string ) {
   try {
     await fetch("/api/queue", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       cache: "no-store",
-      body: JSON.stringify({ action: "unqueue", sessionId }),
+      body: JSON.stringify({
+              action: "leave",
+              sessionId,
+              roomId,
+            }),
     })
   } catch (e) {
     logError("queue: leave room failed", e)
-  }
-}
-
-export async function unqueueSession(sessionId: string) {
-  try {
-    await fetch("/api/queue", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      cache: "no-store",
-      body: JSON.stringify({ action: "unqueue", sessionId }),
-    })
-  } catch (e) {
-    logError("queue: unqueue session failed", e)
   }
 }

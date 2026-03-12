@@ -4,7 +4,7 @@ import { Spinner } from "@/src/app/components/ui/spinner";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 import { getSession } from "../../core/services/session/session";
-import { leaveRoom } from "../../core/services/api/queue/queue-client";
+import { clearMatchTables } from "../../core/services/api/queue/queue-client";
 
 export function Loading() {
   const router = useRouter();
@@ -12,7 +12,7 @@ export function Loading() {
   const handleBack = async () => {
     const session = getSession();
     if (session) {
-      await leaveRoom(session.sessionId);
+      await clearMatchTables(session.sessionId);
     }
     router.push("/interest");
   }
