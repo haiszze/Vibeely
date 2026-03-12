@@ -12,7 +12,7 @@ export function Loading() {
   const handleBack = async () => {
     const session = getSession();
     if (session) {
-      await clearMatchTables(session.sessionId);
+      await clearMatchTables(session.sessionId, null);
     }
     router.push("/interest");
   }
