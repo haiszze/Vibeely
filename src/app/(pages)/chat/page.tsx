@@ -70,7 +70,7 @@ export default function ChatPage() {
       if (data.status === "matched" && data.roomId) {
         if (data.matchedSessionId) {
           await notifyQueueMatch(data.matchedSessionId, {
-            roomId: data.roomId,
+            roomId: `${data.roomId}${key}`,
             matchedSessionId: session?.sessionId,
           });
         }
