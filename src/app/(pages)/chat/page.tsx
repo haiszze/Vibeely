@@ -20,6 +20,8 @@ export default function ChatPage() {
   const [roomId, setRoomId] = useState<string | null>(null);
   const [broadcastReady, setBroadcastReady] = useState(false);
 
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+
   useEffect(() => {
     setSession(getSession());
   }, []);
@@ -73,7 +75,7 @@ export default function ChatPage() {
           });
         }
 
-        setRoomId(data.roomId);
+        setRoomId(`${data.roomId}${key}`);
         return;
       }
     }
