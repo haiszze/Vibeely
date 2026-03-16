@@ -86,7 +86,7 @@ export async function POST(req: Request) {
           .eq("room_id", roomId)
       }
 
-      return json({ status: "ok" })
+      return json({})
     }
 
     const sessionId = body!.sessionId
@@ -234,7 +234,7 @@ export async function DELETE(req: Request) {
 
     if (deleteRoomError) return json({ error: deleteRoomError.message }, { status: 500 })
 
-    return json({ status: "ok" })
+    return json({})
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error"
     logError("queue: unhandled error (delete)", e, { message })
