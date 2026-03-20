@@ -131,27 +131,42 @@ export async function POST(req: Request) {
       return json({ error: queueError.message }, { status: 500 })
     }
 
-    // MATCHING
-    const { data: candidates, error: candidatesError } = await cfg
-      .from("match_queue")
-      .select("session_id, joined_at")
-      .neq("session_id", sessionId)
-      .overlaps("interest_ids", interestIds)
-      .order("joined_at", { ascending: true })
+  // MATCHING
+  const { data: candidates, error: candidatesError } = await cfg
+    .from("match_queue")
+    .select("session_id, joined_at, interest_ids")
+    .neq("session_id", sessionId)
+    .overlaps("interest_ids", interestIds)
+    .order("joined_at", { ascending: true })
 
-    if (candidatesError) {
-      logError("queue: match_queue candidates select failed", candidatesError, {
-        sessionId,
-      })
-      return json({ error: candidatesError.message }, { status: 500 })
-    }
+  if (candidatesError) {
+    logError("queue: match_queue candidates select failed", candidatesError, {
+      sessionId,
+    })
+    return json({ error: candidatesError.message }, { status: 500 })
+  }
 
-    if (!candidates || candidates.length === 0) {
-      return json({})
-    }
+  if (!candidates || candidates.length === 0) {
+    return json({})
+  }
 
-    const best = candidates[0]
-    const matchedSessionId: string = best.session_id
+  const sameInterest = candidates.filter((c) => {
+    if (!Array.isArray(c.interest_ids)) return false
+    if (c.interest_ids.length !== interestIds.length) return false
+
+    const a = [...c.interest_ids].sort()
+    const b = [...interestIds].sort()
+
+    return a.every((v, i) => v === b[i])
+  })
+
+  const best = sameInterest[0] ?? candidates[0]
+
+  if (!best) {
+    return json({})
+  }
+
+  const matchedSessionId: string = best.session_id
 
     if (!isUuid(matchedSessionId)) {
       logError("queue: bad matched session id in queue", "Non-UUID session_id", {

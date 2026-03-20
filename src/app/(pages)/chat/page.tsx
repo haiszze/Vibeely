@@ -25,7 +25,7 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
-    if (session === null) router.replace("/interest");
+    if (session === null) router.replace("/");
   }, [session, router]);
 
   useEffect(() => {
