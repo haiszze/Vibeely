@@ -127,53 +127,50 @@ export async function POST(req: Request) {
       )
 
     if (queueError) {
-      logError("queue: match_queue upsert failed", queueError, { sessionId })
+      logError("queue: match_queue upsert failed", queueError, { sessionId, interestIds })
       return json({ error: queueError.message }, { status: 500 })
     }
 
-  // MATCHING
-  const { data: candidates, error: candidatesError } = await cfg
-    .from("match_queue")
-    .select("session_id, joined_at, interest_ids")
-    .neq("session_id", sessionId)
-    .overlaps("interest_ids", interestIds)
-    .order("joined_at", { ascending: true })
+    // MATCHING
+    const { data: candidates, error: candidatesError } = await cfg
+      .from("match_queue")
+      .select("session_id, interest_ids, joined_at")
+      .neq("session_id", sessionId)
+      .overlaps("interest_ids", interestIds)
+      .order("joined_at", { ascending: true })
 
-  if (candidatesError) {
-    logError("queue: match_queue candidates select failed", candidatesError, {
-      sessionId,
+    if (candidatesError) {
+      logError("queue: match_queue candidates select failed", candidatesError, {
+        sessionId,
+        interestIds,
+      })
+      return json({ error: candidatesError.message }, { status: 500 })
+    }
+
+    if (!candidates || candidates.length === 0) {
+      return json({ status: "waiting" })
+    }
+
+    const scoredCandidates = candidates.map((c) => {
+      const sharedCount = c.interest_ids.filter((id: any) => interestIds.includes(id)).length
+      return { ...c, sharedCount }
     })
-    return json({ error: candidatesError.message }, { status: 500 })
-  }
 
-  if (!candidates || candidates.length === 0) {
-    return json({})
-  }
+    const best =
+      scoredCandidates.find((c) => c.sharedCount === Math.max(...scoredCandidates.map((x) => x.sharedCount))) ??
+      candidates[0]
 
-  const sameInterest = candidates.filter((c) => {
-    if (!Array.isArray(c.interest_ids)) return false
-    if (c.interest_ids.length !== interestIds.length) return false
-
-    const a = [...c.interest_ids].sort()
-    const b = [...interestIds].sort()
-
-    return a.every((v, i) => v === b[i])
-  })
-
-  const best = sameInterest[0] ?? candidates[0]
-
-  if (!best) {
-    return json({})
-  }
-
-  const matchedSessionId: string = best.session_id
+    const matchedSessionId: string = best.session_id
 
     if (!isUuid(matchedSessionId)) {
       logError("queue: bad matched session id in queue", "Non-UUID session_id", {
         sessionId,
         matchedSessionId,
       })
-      return json({ error: "Matched sessionId is not a UUID (bad data in match_queue)" }, { status: 500 })
+      return json(
+        { error: "Matched sessionId is not a UUID (bad data in match_queue)" },
+        { status: 500 }
+      )
     }
 
     // MOVE TO ROOM 
@@ -191,7 +188,7 @@ export async function POST(req: Request) {
     }
 
     if (deletedCount !== 2) {
-      return json({})
+      return json({ status: "waiting" })
     }
 
     // CREATE ROOM BASED ON MATCH
