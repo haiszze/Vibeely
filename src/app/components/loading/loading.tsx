@@ -14,7 +14,7 @@ export function Loading() {
     if (session) {
       await clearMatchTables(session.sessionId, null);
     }
-    router.push("/interest");
+    router.push("/");
   }
 
   return (

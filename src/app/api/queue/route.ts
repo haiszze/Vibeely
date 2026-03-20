@@ -90,7 +90,6 @@ export async function POST(req: Request) {
     }
 
     const sessionId = body!.sessionId
-    const universityId = body!.userProp!.university
     const interestIds = body!.userProp!.interests
 
     const { data: activeSession, error: activeSessionError } = await cfg
@@ -106,7 +105,6 @@ export async function POST(req: Request) {
     // VALIDATION
     if (!sessionId) return json({ error: "Missing sessionId" }, { status: 400 })
     if (!isUuid(sessionId)) return json({ error: "sessionId must be a UUID" }, { status: 400 })
-    if (!universityId) return json({ error: "Missing userProp.university" }, { status: 400 })
     if (!Array.isArray(interestIds) || interestIds.length === 0) {
       return json({ error: "userProp.interests must be a non-empty array" }, { status: 400 })
     }
@@ -125,18 +123,18 @@ export async function POST(req: Request) {
     const { error: queueError } = await cfg
       .from("match_queue")
       .upsert(
-        { session_id: sessionId, university_id: universityId, interest_ids: interestIds }
+        { session_id: sessionId, interest_ids: interestIds }
       )
 
     if (queueError) {
-      logError("queue: match_queue upsert failed", queueError, { sessionId, universityId })
+      logError("queue: match_queue upsert failed", queueError, { sessionId })
       return json({ error: queueError.message }, { status: 500 })
     }
 
     // MATCHING
     const { data: candidates, error: candidatesError } = await cfg
       .from("match_queue")
-      .select("session_id, university_id, joined_at")
+      .select("session_id, joined_at")
       .neq("session_id", sessionId)
       .overlaps("interest_ids", interestIds)
       .order("joined_at", { ascending: true })
@@ -144,17 +142,15 @@ export async function POST(req: Request) {
     if (candidatesError) {
       logError("queue: match_queue candidates select failed", candidatesError, {
         sessionId,
-        universityId,
       })
       return json({ error: candidatesError.message }, { status: 500 })
     }
 
     if (!candidates || candidates.length === 0) {
-      return json({ status: "waiting" })
+      return json({})
     }
 
-    const sameUniversity = candidates.filter((c) => c.university_id === universityId)
-    const best = sameUniversity.length > 0 ? sameUniversity[0] : candidates[0]
+    const best = candidates[0]
     const matchedSessionId: string = best.session_id
 
     if (!isUuid(matchedSessionId)) {
@@ -180,7 +176,7 @@ export async function POST(req: Request) {
     }
 
     if (deletedCount !== 2) {
-      return json({ status: "waiting" })
+      return json({})
     }
 
     // CREATE ROOM BASED ON MATCH

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/src/app/components/ui/button";
 import { Input } from "@/src/app/components/ui/input";
 import { Label } from "@/src/app/components/ui/label";
-import { UserProp, University } from "../../core/model/userprop.model";
+import { UserProp } from "../../core/model/userprop.model";
 import {
   Select,
   SelectContent,
@@ -12,7 +12,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/src/app/components/ui/select";
-import { getUniversities } from "../../core/services/api/university/university";
+import { 
+  Cpu, 
+  Coffee, 
+  Palette,
+  Music,
+  Gamepad,
+  MessageCircleHeart,
+  Hamburger,
+  Luggage,
+  GraduationCap,
+  Dumbbell,
+  Camera,
+  Popcorn,
+  Album
+} from "lucide-react";
+
 
 interface InterestSelectorProps {
   onInterestsSelect: (interestPageProps: UserProp) => void | Promise<void>;
@@ -22,18 +37,18 @@ interface InterestSelectorProps {
 }
 
 const INTERESTS = [
-  { id: "technology", label: "Technology" },
-  { id: "sports", label: "Sports" },
-  { id: "arts", label: "Arts & Design" },
-  { id: "music", label: "Music" },
-  { id: "gaming", label: "Gaming" },
-  { id: "food", label: "Food" },
-  { id: "travel", label: "Travel" },
-  { id: "education", label: "Education" },
-  { id: "fitness", label: "Fitness" },
-  { id: "photography", label: "Photography" },
-  { id: "movies", label: "Movies & TV" },
-  { id: "books", label: "Books & Literature" },
+  { id: "technology", label: "Technology", icon:Cpu},
+  { id: "coffee", label: "Coffee", icon:Coffee},
+  { id: "arts", label: "Arts", icon:Palette },
+  { id: "music", label: "Music", icon:Music },
+  { id: "gaming", label: "Gaming", icon:Gamepad },
+  { id: "food", label: "Food", icon:Hamburger },
+  { id: "travel", label: "Travel", icon:Luggage },
+  { id: "education", label: "Education", icon:GraduationCap},
+  { id: "fitness", label: "Fitness", icon:Dumbbell },
+  { id: "photography", label: "Photography", icon:Camera },
+  { id: "movies", label: "Movies", icon:Popcorn },
+  { id: "books", label: "Books", icon:Album },
 ];
 
 export function InterestSelector({
@@ -42,8 +57,6 @@ export function InterestSelector({
   loading = false,
 }: InterestSelectorProps) {
   const [selected, setSelected] = useState<string[]>([]);
-  const [universities, setUniversities] = useState<University[]>([])
-  const [selectedUniversity, setSelectedUniversity] = useState<string>("");
   const [name, setName] = useState<string>("");
 
   useEffect(() => {
@@ -53,19 +66,10 @@ export function InterestSelector({
         try {
           const session = JSON.parse(sessionRaw);
           setSelected(session.userProp?.interests || []);
-          setSelectedUniversity(session.userProp?.university || "");
           setName(session.userProp?.name || "");
         } catch {}
       }
     }
-  }, []);
-
-  useEffect(() => {
-    const load = async () => {
-      const data = await getUniversities();
-      setUniversities(data);
-    };
-    load();
   }, []);
 
   const handleToggle = (id: string) => {
@@ -85,15 +89,20 @@ export function InterestSelector({
     onInterestsSelect?.({
       name,
       interests: selected,
-      university: selectedUniversity,
     });
   };
 
   return (
-    <div className="flex flex-col gap-5 *:max-w-lg">
+    <div className="flex flex-col gap-7">
+      
+      <div className="flex flex-col mb-10 justify-center items-center gap-2">
+        <Label className="text-6xl font-bold">VIBEELY</Label>
+        <Label className="text-center text-muted-foreground">Connect yourself with others</Label>
+      </div>
+
       {/* Name Input */}
-      <div className="flex items-center text-center gap-2">
-        <Label className="min-w-15">Name</Label>
+      <div className="flex flex-col items-start justify-center text-center gap-2">
+        <Label className="min-w-15 text-sm">NAME</Label>
         <Input
           type="text"
           value={name}
@@ -101,61 +110,46 @@ export function InterestSelector({
             setName(e.target.value)
           }
           placeholder="Enter your name"
-          className="w-full"
+          className="w-full h-13 rounded-3xl"
         />
       </div>
 
-      {/* University Selection */}
-      <div className="flex items-center gap-2">
-        <Label className="min-w-15">University</Label>
-        <Select
-          value={selectedUniversity}
-          onValueChange={setSelectedUniversity}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Choose your university..." />
-          </SelectTrigger>
-          <SelectContent className="max-h-60 overflow-y-auto">
-            {universities.map((uni) => (
-              <SelectItem key={uni.key} value={uni.key}>
-                {uni.value}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Interests Selection */}
-      <div className="flex justify-between">
-        <Label>Interests</Label>
-        <Label>
-          {selected.length} / {maxSelections} interests selected
-        </Label>
-      </div>
+      <div className="flex flex-col gap-2">
+        <div className="flex justify-between">
+          <Label className="text-sm">INTEREST</Label>
+        </div>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 ">
+          {INTERESTS.map((interest) => {
+            const isSelected = selected.includes(interest.id);
 
-      <div className="flex flex-wrap gap-1 justify-center">
-        {INTERESTS.map((interest) => {
-          const isSelected = selected.includes(interest.id);
-          return (
-            <Button
-              key={interest.id}
-              onClick={() => handleToggle(interest.id)}
-              variant={isSelected ? "default" : "outline"}
-              className="rounded-full p-3 transition-all"
-            >
-              {interest.label}
-            </Button>
-          );
-        })}
+            return (
+              <Button
+                key={interest.id}
+                onClick={() => handleToggle(interest.id)}
+                variant={isSelected ? "default" : "outline"}
+                className="flex flex-col items-start justify-center gap-4 p-4 rounded-3xl h-25 w-35 transition-all"
+              >
+                <interest.icon  
+                  className="w-7 h-7 md:w-5 md:h-5"
+                  strokeWidth={2}
+                />
+                <Label className="min-w-15">{interest.label}</Label>
+              </Button>
+            );
+          })}
+        </div>
       </div>
 
       <Button
-        className="min-w-30 self-end"
+        className="min-w-30 h-15 rounded-3xl w-full md:w-auto md:self-center"
         onClick={handleContinue}
-        disabled={loading || selected.length === 0 || !selectedUniversity}
-        size="lg"
+        disabled={loading || !name.trim() || selected.length === 0}
       >
-        {loading ? "Loading..." : "Continue"}
+        <Label className="min-w-15 text-md px-3 justify-center">
+          {loading ? "LOADING..." : "VIBEE"}
+          <MessageCircleHeart size={20} strokeWidth={2}/>
+        </Label>
       </Button>
     </div>
   );
