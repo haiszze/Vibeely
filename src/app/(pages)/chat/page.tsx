@@ -25,7 +25,7 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
-    if (session === null) router.replace("/interest");
+    if (session === null) router.replace("/");
   }, [session, router]);
 
   useEffect(() => {
@@ -60,7 +60,6 @@ export default function ChatPage() {
       const data = await joinQueue(session!.sessionId, {
         name: session!.userProp.name,
         interests: session!.userProp.interests,
-        university: session!.userProp.university,
       });
 
       if (!data) return;

@@ -1,22 +1,39 @@
+
+"use client"
+
+import * as React from "react"
 import { Button } from "@/src/app/components/ui/button"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { InterestSelector } from "@/src/app/components/interest/interest-selector"
+import { setSession } from "@/src/app/core/services/session/session"
+import { logError } from "@/src/app/core/services/log/log"
+import { UserProp } from "../app/core/model/userprop.model"
 
 export default function Home() {
-  return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <div className="max-w-2xl text-center space-y-6">
-        <h1 className="text-5xl font-bold">Welcome to Vibeely</h1>
-        <p className="text-xl text-muted-foreground">
-          Connect with people with the same interests and university, and
-          build meaningful friendships
-        </p>
+  const router = useRouter()
+  const [loading, setLoading] = React.useState(false)
 
-        <div className="flex gap-4 justify-center pt-6">
-          <Link href="/interest">
-            <Button size="lg">Get Started</Button>
-          </Link>
-        </div>
-      </div>
+  const handleInterestsSelect = async (userProp: UserProp) => {
+    setLoading(true)
+    try {
+      const { name, interests } = userProp
+
+      setSession({ name, interests })
+
+      router.push("/chat")
+
+    } catch (error) {
+      logError("profile: failed to save", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="mx-auto w-full max-w-2xl min-h-screen bg-background flex items-center justify-center p-4">
+        <InterestSelector onInterestsSelect={handleInterestsSelect} loading={loading} />
     </div>
   )
 }
+
