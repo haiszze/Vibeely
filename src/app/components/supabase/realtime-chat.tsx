@@ -85,7 +85,7 @@ export const RealtimeChat = ({
   }, [hasPartnerLeft, router]);
 
   const handleExit = useCallback(() => {
-    router.replace("/interest");
+    router.replace("/");
     
     void (async () => {
       try {
