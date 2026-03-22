@@ -1,17 +1,10 @@
 'use client'
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/src/app/components/ui/button";
 import { Input } from "@/src/app/components/ui/input";
 import { Label } from "@/src/app/components/ui/label";
 import { UserProp } from "../../core/model/userprop.model";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/src/app/components/ui/select";
 import { 
   Cpu, 
   Coffee, 
@@ -51,26 +44,27 @@ const INTERESTS = [
   { id: "books", label: "Books", icon:Album },
 ];
 
+function setInitialSelectedInterests(): string[] {
+  if (typeof window === "undefined") return [];
+  const sessionRaw = window.sessionStorage.getItem("session");
+  if (!sessionRaw) return [];
+  return sessionRaw ? JSON.parse(sessionRaw).userProp?.interests : [];
+}
+
+function setInitialName(): string {
+  if (typeof window === "undefined") return "";
+  const sessionRaw = window.sessionStorage.getItem("session");
+  if (!sessionRaw) return "";
+  return sessionRaw ? JSON.parse(sessionRaw).userProp?.name : "";
+}
+
 export function InterestSelector({
   onInterestsSelect,
   maxSelections = 5,
   loading = false,
 }: InterestSelectorProps) {
-  const [selected, setSelected] = useState<string[]>([]);
-  const [name, setName] = useState<string>("");
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const sessionRaw = window.sessionStorage.getItem("session");
-      if (sessionRaw) {
-        try {
-          const session = JSON.parse(sessionRaw);
-          setSelected(session.userProp?.interests || []);
-          setName(session.userProp?.name || "");
-        } catch {}
-      }
-    }
-  }, []);
+  const [selected, setSelected] = useState<string[]>(() => setInitialSelectedInterests());
+  const [name, setName] = useState<string>(() => setInitialName());
 
   const handleToggle = (id: string) => {
     setSelected((prev) => {
