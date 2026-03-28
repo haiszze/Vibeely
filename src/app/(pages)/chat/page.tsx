@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { RealtimeChat } from "@/src/app/components/supabase/realtime-chat";
-import { getSession } from "@/src/app/core/services/session/session";
+import { getSession, Session } from "@/src/app/core/services/session/session";
 import { useRouter } from "next/navigation";
 import {
   joinQueue,
@@ -14,15 +14,9 @@ import { Loading } from "../../components/loading/loading";
 export default function ChatPage() {
   const router = useRouter();
 
-  const [session, setSession] = useState<
-    ReturnType<typeof getSession> | undefined
-  >(undefined);
+  const [session] = useState<Session | null>(getSession());
   const [roomId, setRoomId] = useState<string | null>(null);
   const [broadcastReady, setBroadcastReady] = useState(false);
-
-  useEffect(() => {
-    setSession(getSession());
-  }, []);
 
   useEffect(() => {
     if (session === null) router.replace("/");
@@ -54,8 +48,6 @@ export default function ChatPage() {
   useEffect(() => {
     if (!session || roomId || !broadcastReady) return;
 
-    let cancelled = false;
-
     async function sessionQueue() {
       const data = await joinQueue(session!.sessionId, {
         name: session!.userProp.name,
@@ -77,11 +69,7 @@ export default function ChatPage() {
       }
     }
 
-    void sessionQueue();
-
-    return () => {
-      cancelled = true;
-    };
+    void sessionQueue();      
   }, [broadcastReady, roomId, session]);
 
   useEffect(() => {
