@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
@@ -32,28 +32,26 @@ interface InterestSelectorProps {
 
 const INTERESTS = [
   { id: "technology", label: "Technology", icon: <Cpu className="w-4 h-4" /> },
-  { id: "coffee",     label: "Coffee",     icon: <Coffee className="w-4 h-4" /> },
-  { id: "arts",       label: "Arts",       icon: <Palette className="w-4 h-4" /> },
-  { id: "music",      label: "Music",      icon: <Music className="w-4 h-4" /> },
-  { id: "gaming",     label: "Gaming",     icon: <Gamepad2 className="w-4 h-4" /> },
-  { id: "food",       label: "Food",       icon: <UtensilsCrossed className="w-4 h-4" /> },
-  { id: "travel",     label: "Travel",     icon: <Plane className="w-4 h-4" /> },
-  { id: "education",  label: "Education",  icon: <GraduationCap className="w-4 h-4" /> },
-  { id: "fitness",    label: "Fitness",    icon: <Dumbbell className="w-4 h-4" /> },
-  { id: "photography",label: "Photography",icon: <Camera className="w-4 h-4" /> },
-  { id: "movies",     label: "Movies",     icon: <Film className="w-4 h-4" /> },
-  { id: "books",      label: "Books",      icon: <BookOpen className="w-4 h-4" /> },
+  { id: "coffee", label: "Coffee", icon: <Coffee className="w-4 h-4" /> },
+  { id: "arts", label: "Arts", icon: <Palette className="w-4 h-4" /> },
+  { id: "music", label: "Music", icon: <Music className="w-4 h-4" /> },
+  { id: "gaming", label: "Gaming", icon: <Gamepad2 className="w-4 h-4" /> },
+  { id: "food", label: "Food", icon: <UtensilsCrossed className="w-4 h-4" /> },
+  { id: "travel", label: "Travel", icon: <Plane className="w-4 h-4" /> },
+  {
+    id: "education",
+    label: "Education",
+    icon: <GraduationCap className="w-4 h-4" />,
+  },
+  { id: "fitness", label: "Fitness", icon: <Dumbbell className="w-4 h-4" /> },
+  {
+    id: "photography",
+    label: "Photography",
+    icon: <Camera className="w-4 h-4" />,
+  },
+  { id: "movies", label: "Movies", icon: <Film className="w-4 h-4" /> },
+  { id: "books", label: "Books", icon: <BookOpen className="w-4 h-4" /> },
 ];
-
-// HSL representation of the purple-blue theme for the reference design's hsl() calls
-const themeHsl = "270 72% 57%"; // ~#9333ea
-
-const theme = {
-  colors: { primary: "#9333ea", secondary: "#3b82f6" },
-  bg: "bg-gradient-to-r from-purple-600 to-blue-600",
-  shadow: "shadow-purple-500/30",
-  glow: "0 0 40px rgba(147, 51, 234, 0.3)",
-};
 
 export function InterestSelector({
   onInterestsSelect,
@@ -70,7 +68,7 @@ export function InterestSelector({
   // ✅ Fix 2: Load from sessionStorage only after client mount
   useEffect(() => {
     setIsClient(true);
-    
+
     // Load name from sessionStorage
     const sessionRaw = window.sessionStorage.getItem("session");
     if (sessionRaw) {
@@ -91,7 +89,10 @@ export function InterestSelector({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     };
@@ -117,7 +118,6 @@ export function InterestSelector({
 
   return (
     <div className="flex flex-col gap-8">
-
       {/* Name input */}
       <div>
         <label className="block text-foreground text-sm font-medium mb-3 uppercase tracking-wider">
@@ -129,10 +129,16 @@ export function InterestSelector({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Enter your name..."
-          className="w-full px-5 py-3 bg-foreground/5 backdrop-blur-sm border border-foreground/10 rounded-2xl text-foreground placeholder-gray-500 focus:outline-none transition-all"
-          style={{ boxShadow: `0 0 0 0 ${theme.colors.primary}80` }}
-          onFocus={(e) => { e.currentTarget.style.boxShadow = theme.glow; e.currentTarget.style.borderColor = theme.colors.primary; }}
-          onBlur={(e) => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
+          className="w-full px-5 py-3 bg-foreground/5 backdrop-blur-sm border border-foreground/10 rounded-2xl text-foreground placeholder-gray-500 focus:outline-none transition-all shadow-[0_0_0_0_rgba(var(--primary-rgb),0.5)] animate-pulse"
+          onFocus={(e) => {
+            e.currentTarget.style.boxShadow =
+              "0 0 40px rgba(236, 72, 153, 0.3)";
+            e.currentTarget.style.borderColor = "var(--primary)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.boxShadow = "none";
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+          }}
         />
       </div>
 
@@ -172,15 +178,12 @@ export function InterestSelector({
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.8 }}
-                      className="px-3 py-1.5 rounded-full backdrop-blur-xl border flex items-center gap-2"
-                      style={{
-                        background: `linear-gradient(135deg, hsl(${themeHsl}), hsl(270 72% 47%))`,
-                        borderColor: `hsl(${themeHsl})`,
-                        boxShadow: `0 0 20px hsla(${themeHsl}, 0.3)`,
-                      }}
+                      className="px-3 py-1.5 rounded-full backdrop-blur-xl border flex items-center gap-2 bg-primary border-primary shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]"
                     >
                       <span className="text-white">{interest.icon}</span>
-                      <span className="text-white text-sm">{interest.label}</span>
+                      <span className="text-white text-sm">
+                        {interest.label}
+                      </span>
                       <motion.button
                         onClick={() => removeInterest(id)}
                         whileHover={{ scale: 1.2, rotate: 90 }}
@@ -200,10 +203,13 @@ export function InterestSelector({
         {/* Dropdown trigger */}
         <motion.button
           onClick={() => setDropdownOpen(!dropdownOpen)}
-          className="w-full px-5 py-3 bg-foreground/5 border border-foreground/10 rounded-2xl text-foreground/60 text-left flex items-center justify-between backdrop-blur-xl transition-all hover:bg-foreground/10"
+          className={`w-full px-5 py-3 bg-foreground/5 border rounded-2xl text-foreground/60 text-left flex items-center justify-between backdrop-blur-xl transition-all hover:bg-foreground/10 ${
+            dropdownOpen ? "border-primary" : "border-foreground/10"
+          }`}
           style={{
-            borderColor: dropdownOpen ? theme.colors.primary : "border-foreground/10",
-            boxShadow: dropdownOpen ? theme.glow : "none",
+            boxShadow: dropdownOpen
+              ? "0 0 40px rgba(236, 72, 153, 0.3)"
+              : "none",
           }}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
@@ -229,12 +235,12 @@ export function InterestSelector({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="w-full max-h-64 overflow-y-auto overflow-x-hidden bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl"
-              style={{ boxShadow: `0 10px 40px hsla(${themeHsl}, 0.2)` }}
+              className="w-full max-h-64 overflow-y-auto overflow-x-hidden bg-foreground/10 backdrop-blur-xl border border-foreground/10 rounded-2xl 0 10px 40px"
             >
               {INTERESTS.map((interest, index) => {
                 const isSelected = selected.includes(interest.id);
-                const isDisabled = !isSelected && selected.length >= maxSelections;
+                const isDisabled =
+                  !isSelected && selected.length >= maxSelections;
 
                 return (
                   <motion.button
@@ -248,8 +254,8 @@ export function InterestSelector({
                     disabled={isDisabled}
                     style={{
                       background: isSelected
-                        ? `hsla(${themeHsl}, 0.2)`
-                        : "transparent",
+                        ? "bg-[rgba(var(--primary-rgb),0.2)]"
+                        : "bg-transparent",
                       opacity: isDisabled ? 0.4 : 1,
                       cursor: isDisabled ? "not-allowed" : "pointer",
                     }}
@@ -269,12 +275,12 @@ export function InterestSelector({
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
                         exit={{ scale: 0, rotate: 180 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                        className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-                        style={{
-                          background: `hsl(${themeHsl})`,
-                          boxShadow: `0 0 10px hsla(${themeHsl}, 0.5)`,
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 20,
                         }}
+                        className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 bg-primary"
                       >
                         <Check className="w-3 h-3 text-white" />
                       </motion.div>
@@ -293,7 +299,7 @@ export function InterestSelector({
         whileTap={{ scale: 0.98 }}
         onClick={handleContinue}
         disabled={loading || !name.trim() || selected.length === 0}
-        className={`w-full py-4 ${theme.bg} rounded-2xl text-white font-semibold text-lg shadow-lg ${theme.shadow} hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2`}
+        className={`w-full py-4 bg-secondary rounded-2xl text-white font-semibold text-lg shadow-[0_10px_15px_-3px_rgba(var(--primary-rgb),0.3)] hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2`}
       >
         {loading ? (
           <div className="flex items-center gap-2">

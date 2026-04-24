@@ -3,14 +3,10 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "motion/react"
-import { Sparkles } from "lucide-react"
 import { InterestSelector } from "@/src/app/components/interest/interest-selector"
 import { setSession } from "@/src/app/core/services/session/session"
 import { logError } from "@/src/app/core/services/log/log"
 import { UserProp } from "../app/core/model/userprop.model"
-
-const PRIMARY = "#9333ea"
-const SECONDARY = "#3b82f6"
 
 export default function Home() {
   const router = useRouter()
@@ -33,7 +29,9 @@ export default function Home() {
       height: Math.random() * 300 + 50,
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * 100}%`,
-      background: `${i % 2 === 0 ? PRIMARY : SECONDARY}0d`,
+      background: i % 2 === 0 
+      ? `rgba(var(--primary-rgb), 0.05)` 
+      : `rgba(var(--secondary-rgb), 0.05)`,
       animateX: Math.random() * 100 - 50,
       animateY: Math.random() * 100 - 50,
       duration: Math.random() * 10 + 10,
@@ -61,7 +59,10 @@ export default function Home() {
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: `linear-gradient(to bottom right, ${PRIMARY}18, transparent, ${SECONDARY}18)`,
+          background: `linear-gradient(to bottom right, 
+              rgba(var(--primary-rgb), 0.18), 
+              transparent, 
+              rgba(var(--secondary-rgb), 0.18))`,
         }}
       />
 
@@ -111,10 +112,7 @@ export default function Home() {
             className="inline-flex items-center gap-3 mb-4"
           >
             <h1
-              className="text-7xl font-bold bg-clip-text text-transparent"
-              style={{
-                backgroundImage: `linear-gradient(to right, ${PRIMARY}, #ec4899, ${SECONDARY})`,
-              }}
+              className="text-7xl font-bold bg-clip-text text-secondary"
             >
               VIBEELY
             </h1>
