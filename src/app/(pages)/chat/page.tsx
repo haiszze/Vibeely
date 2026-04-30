@@ -72,45 +72,49 @@ export default function ChatPage() {
     void sessionQueue();      
   }, [broadcastReady, roomId, session]);
 
-  useEffect(() => {
-    if (!session) return;
+  // Commented out for now since it's causing some issues
+  // useEffect(() => {
+  //   if (!session) return;
 
-    const leave = () => {
-      navigator.sendBeacon(
-        "/api/queue",
-        new Blob(
-          [
-            JSON.stringify({
-              action: "leave",
-              sessionId: session.sessionId,
-              roomId,
-            }),
-          ],
-          { type: "application/json" },
-        ),
-      );
-    };
+  //   const leave = () => {
+  //     navigator.sendBeacon(
+  //       "/api/queue",
+  //       new Blob(
+  //         [
+  //           JSON.stringify({
+  //             action: "leave",
+  //             sessionId: session.sessionId,
+  //             roomId,
+  //           }),
+  //         ],
+  //         { type: "application/json" },
+  //       ),
+  //     );
+  //   };
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        leave();
-      }
-    };
+  //   const handleVisibilityChange = () => {
+  //     if (document.visibilityState === "hidden") {
+  //       leave();
+  //     }
+  //   };
 
-    window.addEventListener("beforeunload", leave);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+  //   window.addEventListener("beforeunload", leave);
+  //   document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    return () => {
-      window.removeEventListener("beforeunload", leave);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [session, roomId]);
+  //   return () => {
+  //     window.removeEventListener("beforeunload", leave);
+  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
+  //   };
+  // }, [session, roomId]);
 
   if (session === null) return null;
 
   if (!roomId) {
     return (
-      <Loading />
+      <Loading 
+        userName={session!.userProp.name}
+        interests={session!.userProp.interests}
+      />
     );
   }
 

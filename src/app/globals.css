@@ -127,4 +127,13 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  .bg-gradient-primary-secondary {
+    background: linear-gradient(
+      to bottom right,
+      rgba(var(--primary-rgb), 0.18),
+      transparent,
+      rgba(var(--secondary-rgb), 0.18)
+    );
+  }
 }

@@ -57,13 +57,7 @@ export default function Home() {
 
       {/* Gradient overlay using primary color */}
       <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `linear-gradient(to bottom right, 
-              rgba(var(--primary-rgb), 0.18), 
-              transparent, 
-              rgba(var(--secondary-rgb), 0.18))`,
-        }}
+        className="absolute inset-0 pointer-events-none bg-gradient-primary-secondary"
       />
 
       {/* Floating orbs */}
