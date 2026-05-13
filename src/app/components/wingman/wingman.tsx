@@ -101,7 +101,9 @@ export default function Wingman({ messages, currentUserId, partnerName }: Wingma
       >
         <span className="flex items-center gap-1.5 font-medium">
           <Sparkles className="size-3.5 text-primary" />
-          Wingman AI
+            <p className="relative z-10 pr-5 text-sm leading-relaxed whitespace-pre-line text-muted-foreground dark:text-white/90">
+              Broskie
+            </p>
           {isLoading && (
             <span className="size-1.5 rounded-full bg-primary animate-pulse" />
           )}
