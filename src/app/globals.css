@@ -82,6 +82,10 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bg-strong: rgba(255, 255, 255, 0.86);
+  --glass-bg-hover: rgba(255, 255, 255, 0.92);
+  --glass-border: rgba(15, 23, 42, 0.08);
 }
 
 .dark {
@@ -118,6 +122,10 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --glass-bg: rgba(17, 24, 39, 0.52);
+  --glass-bg-strong: rgba(17, 24, 39, 0.68);
+  --glass-bg-hover: rgba(31, 41, 55, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.12);
 }
 
 @layer base {
@@ -135,6 +143,22 @@
       transparent,
       rgba(var(--secondary-rgb), 0.18)
     );
+  }
+
+  .glass-surface {
+    background: var(--glass-bg);
+    border-color: var(--glass-border);
+    backdrop-filter: blur(20px);
+  }
+
+  .glass-surface-strong {
+    background: var(--glass-bg-strong);
+    border-color: var(--glass-border);
+    backdrop-filter: blur(24px);
+  }
+
+  .glass-surface-hover:hover {
+    background: var(--glass-bg-hover);
   }
 }
 

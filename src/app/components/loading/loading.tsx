@@ -104,7 +104,7 @@ export function Loading({
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.1 }}
-              className="px-4 py-1.5 rounded-full text-sm text-muted-foreground border border-foreground/10 bg-foreground/5 backdrop-blur-sm"
+              className="glass-surface px-4 py-1.5 rounded-full text-sm text-muted-foreground border"
             >
               {interest}
             </motion.div>
@@ -116,7 +116,7 @@ export function Loading({
           onClick={handleBack}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-foreground/5 backdrop-blur-sm border border-foreground/10 hover:bg-foreground/10 transition-colors text-sm text-muted-foreground"
+          className="glass-surface glass-surface-hover flex items-center gap-2 px-5 py-2.5 rounded-full border transition-colors text-sm text-muted-foreground"
         >
           <X className="w-4 h-4" />
           Cancel

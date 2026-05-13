@@ -21,7 +21,7 @@ export function ThemeToggle() {
         <Button
           variant="outline"
           size="sm"
-          className="size-7 rounded-full border-border hover:bg-muted"
+          className="glass-surface glass-surface-hover size-7 rounded-full border"
           aria-label="Toggle theme"
         >
           <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />

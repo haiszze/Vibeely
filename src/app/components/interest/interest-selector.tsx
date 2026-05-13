@@ -129,7 +129,7 @@ export function InterestSelector({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Enter your name..."
-          className="w-full px-5 py-3 bg-foreground/5 backdrop-blur-sm border border-foreground/10 rounded-2xl text-foreground placeholder-gray-500 focus:outline-none transition-all shadow-[0_0_0_0_rgba(var(--primary-rgb),0.5)] animate-pulse"
+          className="glass-surface w-full px-5 py-3 border rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none transition-all shadow-[0_0_0_0_rgba(var(--primary-rgb),0.5)] animate-pulse"
           onFocus={(e) => {
             e.currentTarget.style.boxShadow =
               "0 0 40px rgba(236, 72, 153, 0.3)";
@@ -137,7 +137,7 @@ export function InterestSelector({
           }}
           onBlur={(e) => {
             e.currentTarget.style.boxShadow = "none";
-            e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+            e.currentTarget.style.borderColor = "var(--glass-border)";
           }}
         />
       </div>
@@ -153,7 +153,7 @@ export function InterestSelector({
           >
             Pick your interests
           </motion.label>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-muted-foreground">
             {selected.length}/{maxSelections} selected
           </span>
         </div>
@@ -203,7 +203,7 @@ export function InterestSelector({
         {/* Dropdown trigger */}
         <motion.button
           onClick={() => setDropdownOpen(!dropdownOpen)}
-          className={`w-full px-5 py-3 bg-foreground/5 border rounded-2xl text-foreground/60 text-left flex items-center justify-between backdrop-blur-xl transition-all hover:bg-foreground/10 ${
+          className={`glass-surface glass-surface-hover w-full px-5 py-3 border rounded-2xl text-muted-foreground text-left flex items-center justify-between transition-all ${
             dropdownOpen ? "border-primary" : "border-foreground/10"
           }`}
           style={{
@@ -235,7 +235,7 @@ export function InterestSelector({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="w-full max-h-64 overflow-y-auto overflow-x-hidden bg-foreground/10 backdrop-blur-xl border border-foreground/10 rounded-2xl 0 10px 40px"
+              className="glass-surface-strong w-full max-h-64 overflow-y-auto overflow-x-hidden border rounded-2xl shadow-[0_10px_40px_rgba(15,23,42,0.16)]"
             >
               {INTERESTS.map((interest, index) => {
                 const isSelected = selected.includes(interest.id);
