@@ -137,3 +137,9 @@
     );
   }
 }
+
+.lobster-regular {
+  font-family: var(--font-lobster), "Lobster", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
