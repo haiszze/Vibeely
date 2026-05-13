@@ -4,6 +4,7 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "motion/react"
 import { InterestSelector } from "@/src/app/components/interest/interest-selector"
+import { ThemeToggle } from "@/src/app/components/theme/theme-toggle"
 import { setSession } from "@/src/app/core/services/session/session"
 import { logError } from "@/src/app/core/services/log/log"
 import { UserProp } from "../app/core/model/userprop.model"
@@ -54,6 +55,9 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background transition-colors duration-300">
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
 
       {/* Gradient overlay using primary color */}
       <div
@@ -92,34 +96,14 @@ export default function Home() {
 
       {/* Content */}
       <div className="relative z-10 min-h-screen md:w-3/4 lg:w-1/3 m-auto flex flex-col items-center justify-center px-6 py-12">
-
-        {/* Header - keep sparkles as they were */}
-        <motion.div
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-center mb-12"
-        >
-          <motion.div
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="inline-flex items-center gap-3 mb-4"
+          <h1
+            className="text-9xl font-bold bg-clip-text text-secondary lobster-regular"
           >
-            <h1
-              className="text-7xl font-bold bg-clip-text text-secondary"
-            >
-              VIBEELY
-            </h1>
-          </motion.div>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-muted-foreground text-lg"
-          >
+            Vibeely  
+          </h1>
+          <span className="pt-4 text-md pb-10">
             Connect yourself with others
-          </motion.p>
-        </motion.div>
+          </span>
 
         {/* Form */}
         <motion.div

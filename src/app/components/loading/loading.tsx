@@ -43,7 +43,7 @@ export function Loading({
     return () => {
       clearInterval(statusInterval);
     };
-  });
+  }, []);
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background transition-colors duration-300">
