@@ -79,7 +79,7 @@ export async function POST(req: Request) {
           .eq("session_id", sessionId)
       }
 
-      if (roomId && !sessionId) {
+      if (roomId) {
         await cfg
           .from("match_rooms")
           .delete()

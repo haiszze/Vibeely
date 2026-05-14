@@ -1,7 +1,7 @@
 "use client";
 
 import { LogOut, RefreshCw, Send } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/src/app/lib/utils";
 import { ChatMessageItem } from "@/src/app/components/supabase/chat-message";
@@ -112,8 +112,64 @@ export const RealtimeChat = ({
     scrollToBottom();
   }, [messages, isPartnerTyping, hasPartnerLeft, scrollToBottom]);
 
+  // When the partner leaves (detected via presence), delete the room from the
+  // DB immediately from this side. This covers cases where the partner closed
+  // or navigated the tab before their own 15-second background timer fired.
+  useEffect(() => {
+    if (!hasPartnerLeft) return;
+    void (async () => {
+      try {
+        await clearMatchTables(null, roomName);
+      } catch {
+        logError("room: partner-left cleanup failed");
+      }
+    })();
+  }, [hasPartnerLeft, roomName]);
+
+  // Background-tab timeout: if the page stays hidden for 15 s, clean up the
+  // room so the partner isn't left waiting, then redirect home on return.
+  const bgTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (hasPartnerLeft) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        bgTimerRef.current = setTimeout(() => {
+          void (async () => {
+            try {
+              await clearMatchTables(userId, roomName);
+            } catch {
+              logError("room: background timeout cleanup failed");
+            } finally {
+              startTransition(() => {
+                router.replace("/");
+              });
+            }
+          })();
+        }, 15_000);
+      } else {
+        if (bgTimerRef.current) {
+          clearTimeout(bgTimerRef.current);
+          bgTimerRef.current = null;
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (bgTimerRef.current) {
+        clearTimeout(bgTimerRef.current);
+        bgTimerRef.current = null;
+      }
+    };
+  }, [hasPartnerLeft, userId, roomName, router]);
+
   const handleExit = useCallback(() => {
-    router.replace("/");
+    startTransition(() => {
+      router.replace("/");
+    });
+
     void (async () => {
       try {
         await clearMatchTables(null, roomName);
@@ -124,16 +180,19 @@ export const RealtimeChat = ({
   }, [roomName, router]);
 
   const handleNextQueue = useCallback(() => {
+    startTransition(() => {
+      onNextQueue?.();
+    });
+
     void (async () => {
       try {
-        await clearMatchTables(null, roomName);
+        // Pass both sessionId and roomId so the room row is always deleted
+        await clearMatchTables(userId, roomName);
       } catch {
         logError("room: next-queue cleanup failed");
-      } finally {
-        onNextQueue?.();
       }
     })();
-  }, [roomName, onNextQueue]);
+  }, [userId, roomName, onNextQueue]);
 
   const handleSendMessage = useCallback(
     (e: React.FormEvent) => {
@@ -147,7 +206,7 @@ export const RealtimeChat = ({
 
   return (
     <div className="flex flex-col h-dvh w-full bg-background text-foreground antialiased">
-      <header className="relative overflow-hidden flex items-center justify-between shrink-0 px-4 py-3 border-b border-black/10 dark:border-white/15 bg-black/5 dark:bg-white/8 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.08),0_4px_24px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),inset_0_-1px_0_rgba(0,0,0,0.05),0_4px_16px_rgba(0,0,0,0.08)] before:absolute before:inset-0 before:bg-linear-to-b before:from-white/70 dark:before:from-white/30 before:to-transparent before:pointer-events-none">
+      <header className="glass-panel relative overflow-hidden flex items-center justify-between shrink-0 border-b px-4 py-3 before:absolute before:inset-0 before:bg-linear-to-b before:from-white/70 dark:before:from-white/15 before:to-transparent before:pointer-events-none">
         <div className="flex items-center gap-3">
           <div
             aria-hidden
@@ -194,7 +253,7 @@ export const RealtimeChat = ({
         {!hasPartnerLeft && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-3 py-16 text-center">
             <p className="text-sm text-muted-foreground">
-
+              Someone who shares your vibe {username}.
             </p>
           </div>
         )}
@@ -220,7 +279,7 @@ export const RealtimeChat = ({
 
         {isPartnerTyping && !hasPartnerLeft && (
           <div className="flex items-end gap-2 px-1 mt-1.5 animate-in fade-in duration-200">
-            <div className="bg-black/5 dark:bg-white/8 backdrop-blur-xl border border-black/10 dark:border-white/15 rounded-2xl rounded-bl-sm px-4 py-2.5 flex items-center gap-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.08),0_4px_24px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),inset_0_-1px_0_rgba(0,0,0,0.05),0_4px_16px_rgba(0,0,0,0.08)]">
+            <div className="glass-panel rounded-2xl rounded-bl-sm border px-4 py-2.5 flex items-center gap-1">
               <span className="size-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:0ms]" />
               <span className="size-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:150ms]" />
               <span className="size-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:300ms]" />
@@ -230,7 +289,7 @@ export const RealtimeChat = ({
 
         {hasPartnerLeft && (
           <div className="flex justify-center py-6">
-            <div className="rounded-2xl border border-black/10 dark:border-white/15 bg-black/5 dark:bg-white/8 backdrop-blur-xl px-6 py-5 text-center max-w-xs relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.08),0_4px_24px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),inset_0_-1px_0_rgba(0,0,0,0.05),0_4px_16px_rgba(0,0,0,0.08)] before:absolute before:inset-0 before:rounded-[inherit] before:bg-linear-to-b before:from-white/70 dark:before:from-white/30 before:to-transparent before:pointer-events-none">
+            <div className="glass-panel-strong rounded-2xl border px-6 py-5 text-center max-w-xs relative overflow-hidden before:absolute before:inset-0 before:rounded-[inherit] before:bg-linear-to-b before:from-white/70 dark:before:from-white/15 before:to-transparent before:pointer-events-none">
               <p className="text-sm font-semibold mb-1">{partnerName ?? "Your match"} left the chat</p>
               <p className="text-xs text-muted-foreground mb-4">
                 The conversation has ended. Find a new match.
@@ -261,7 +320,7 @@ export const RealtimeChat = ({
         )}
       </div>
 
-      <div className="relative overflow-hidden shrink-0 border-t border-black/10 dark:border-white/15 bg-black/5 dark:bg-white/8 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.08),0_4px_24px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),inset_0_-1px_0_rgba(0,0,0,0.05),0_4px_16px_rgba(0,0,0,0.08)] before:absolute before:inset-0 before:bg-linear-to-b before:from-white/70 dark:before:from-white/30 before:to-transparent before:pointer-events-none">
+      <div className="glass-panel relative overflow-hidden shrink-0 border-t before:absolute before:inset-0 before:bg-linear-to-b before:from-white/70 dark:before:from-white/15 before:to-transparent before:pointer-events-none">
         {/* <Wingman
           messages={messages}
           currentUserId={userId}
@@ -274,10 +333,10 @@ export const RealtimeChat = ({
         >
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={handleExit}
-            className="shrink-0 size-9 rounded-full p-5 text-muted-foreground bg-black/5 dark:bg-white/8 border border-black/10 dark:border-white/15 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_4px_24px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_4px_16px_rgba(0,0,0,0.08)] hover:text-destructive hover:bg-destructive/10"
+            className="glass-panel h-9 w-9 shrink-0 rounded-full border p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             aria-label="Exit chat"
           >
             <LogOut className="size-4" />
@@ -289,7 +348,7 @@ export const RealtimeChat = ({
               variant="outline"
               size="sm"
               onClick={handleNextQueue}
-              className="size-9 px-7 py-4 rounded-small text-muted-foreground bg-black/5 dark:bg-white/8 border-black/10 dark:border-white/15 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_4px_24px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_4px_16px_rgba(0,0,0,0.08)] hover:text-primary hover:bg-primary/10"
+              className="glass-panel h-9 shrink-0 rounded-small border px-4 text-muted-foreground hover:text-primary hover:bg-primary/10"
               aria-label="Find new match"
             >
               Next
@@ -298,7 +357,7 @@ export const RealtimeChat = ({
 
           <Input
             className={cn(
-              "flex-1 p-4 rounded-small bg-black/5 dark:bg-white/8 backdrop-blur-xl border-black/10 dark:border-white/15 text-sm transition-all duration-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.08),0_4px_24px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),inset_0_-1px_0_rgba(0,0,0,0.05),0_4px_16px_rgba(0,0,0,0.08)]",
+              "glass-panel flex-1 rounded-small border p-4 text-sm transition-all duration-300",
               hasPartnerLeft && "opacity-50 cursor-not-allowed",
             )}
             type="text"

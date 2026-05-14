@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { X, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -27,12 +27,16 @@ export function Loading({
 
   const router = useRouter();
 
-  const handleBack = async () => {
+  const handleBack = () => {
     const session = getSession();
-    if (session) {
-      await clearMatchTables(session.sessionId, null);
-    }
-    router.push("/");
+
+    startTransition(() => {
+      router.push("/");
+    });
+
+    if (!session) return;
+
+    void clearMatchTables(session.sessionId, null);
   };
 
   useEffect(() => {
