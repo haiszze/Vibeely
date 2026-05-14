@@ -110,7 +110,7 @@ export const RealtimeChat = ({
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, scrollToBottom]);
+  }, [messages, isPartnerTyping, hasPartnerLeft, scrollToBottom]);
 
   const handleExit = useCallback(() => {
     router.replace("/");
@@ -146,7 +146,7 @@ export const RealtimeChat = ({
   );
 
   return (
-    <div className="flex flex-col h-screen w-full bg-background text-foreground antialiased">
+    <div className="flex flex-col h-dvh w-full bg-background text-foreground antialiased">
       <header className="relative overflow-hidden flex items-center justify-between shrink-0 px-4 py-3 border-b border-black/10 dark:border-white/15 bg-black/5 dark:bg-white/8 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.08),0_4px_24px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),inset_0_-1px_0_rgba(0,0,0,0.05),0_4px_16px_rgba(0,0,0,0.08)] before:absolute before:inset-0 before:bg-linear-to-b before:from-white/70 dark:before:from-white/30 before:to-transparent before:pointer-events-none">
         <div className="flex items-center gap-3">
           <div
@@ -191,38 +191,6 @@ export const RealtimeChat = ({
       </header>
 
       <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-3" style={theme.style}>
-        {hasPartnerLeft && (
-          <div className="flex justify-center py-6">
-            <div className="rounded-2xl border border-black/10 dark:border-white/15 bg-black/5 dark:bg-white/8 backdrop-blur-xl px-6 py-5 text-center max-w-xs relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.08),0_4px_24px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),inset_0_-1px_0_rgba(0,0,0,0.05),0_4px_16px_rgba(0,0,0,0.08)] before:absolute before:inset-0 before:rounded-[inherit] before:bg-linear-to-b before:from-white/70 dark:before:from-white/30 before:to-transparent before:pointer-events-none">
-              <p className="text-sm font-semibold mb-1">{partnerName ?? "Your match"} left the chat</p>
-              <p className="text-xs text-muted-foreground mb-4">
-                The conversation has ended. Find a new match or head back home.
-              </p>
-              <div className="flex flex-col gap-2">
-                {onNextQueue && (
-                  <Button
-                    size="sm"
-                    onClick={handleNextQueue}
-                    className="gap-1.5 bg-linear-to-r from-primary to-secondary text-white border-0 hover:opacity-90"
-                  >
-                    <RefreshCw className="size-3.5" />
-                    Find New Match
-                  </Button>
-                )}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleExit}
-                  className="gap-1.5 text-muted-foreground hover:text-foreground"
-                >
-                  <LogOut className="size-3.5" />
-                  Go Home
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {!hasPartnerLeft && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-3 py-16 text-center">
             <p className="text-sm text-muted-foreground">
@@ -256,6 +224,38 @@ export const RealtimeChat = ({
               <span className="size-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:0ms]" />
               <span className="size-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:150ms]" />
               <span className="size-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:300ms]" />
+            </div>
+          </div>
+        )}
+
+        {hasPartnerLeft && (
+          <div className="flex justify-center py-6">
+            <div className="rounded-2xl border border-black/10 dark:border-white/15 bg-black/5 dark:bg-white/8 backdrop-blur-xl px-6 py-5 text-center max-w-xs relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.08),0_4px_24px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),inset_0_-1px_0_rgba(0,0,0,0.05),0_4px_16px_rgba(0,0,0,0.08)] before:absolute before:inset-0 before:rounded-[inherit] before:bg-linear-to-b before:from-white/70 dark:before:from-white/30 before:to-transparent before:pointer-events-none">
+              <p className="text-sm font-semibold mb-1">{partnerName ?? "Your match"} left the chat</p>
+              <p className="text-xs text-muted-foreground mb-4">
+                The conversation has ended. Find a new match.
+              </p>
+              <div className="flex flex-col gap-2">
+                {onNextQueue && (
+                  <Button
+                    size="lg"
+                    onClick={handleNextQueue}
+                    className="gap-1.5 bg-linear-to-r from-primary to-secondary text-white border-0 hover:opacity-90"
+                  >
+                    <RefreshCw className="size-3.5" />
+                    Find New Match
+                  </Button>
+                )}
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  onClick={handleExit}
+                  className="gap-1.5 text-muted-foreground hover:text-foreground"
+                >
+                  <LogOut className="size-4" />
+                  Go Home
+                </Button>
+              </div>
             </div>
           </div>
         )}
