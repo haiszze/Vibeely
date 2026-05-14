@@ -262,11 +262,11 @@ export const RealtimeChat = ({
       </div>
 
       <div className="relative overflow-hidden shrink-0 border-t border-black/10 dark:border-white/15 bg-black/5 dark:bg-white/8 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.08),0_4px_24px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),inset_0_-1px_0_rgba(0,0,0,0.05),0_4px_16px_rgba(0,0,0,0.08)] before:absolute before:inset-0 before:bg-linear-to-b before:from-white/70 dark:before:from-white/30 before:to-transparent before:pointer-events-none">
-        <Wingman
+        {/* <Wingman
           messages={messages}
           currentUserId={userId}
           partnerName={partnerName ?? undefined}
-        />
+        /> */}
 
         <form
           onSubmit={handleSendMessage}
