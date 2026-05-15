@@ -58,7 +58,7 @@ export const RealtimeChat = ({
 
   const [newMessage, setNewMessage] = useState("");
 
-  // Select a preset theme — set locally and broadcast to partner
+  // Handle theme selection
   const handleSelectTheme = useCallback(
     (id: string) => {
       setTheme(id);
@@ -67,7 +67,7 @@ export const RealtimeChat = ({
     [setTheme, sendTheme],
   );
 
-  // Upload a custom image — store locally and broadcast compressed data to partner
+  // Handle Image upload for custom theme
   const handleImageUpload = useCallback(
     (dataUrl: string) => {
       setCustomImage(dataUrl);
@@ -76,7 +76,7 @@ export const RealtimeChat = ({
     [setCustomImage, sendTheme],
   );
 
-  // Remove custom image — reset locally and tell partner to go back to default
+  // Handle removing image for custom theme
   const handleImageRemove = useCallback(() => {
     setCustomImage(null);
     sendTheme("default");
@@ -91,7 +91,7 @@ export const RealtimeChat = ({
   );
 
   // Broadcast our saved theme to the partner the moment they join.
-  // Using refs so the effect closure never goes stale.
+
   const themeRef = useRef(theme);
   const customImageUrlRef = useRef(customImageUrl);
   useEffect(() => { themeRef.current = theme; }, [theme]);
@@ -106,8 +106,8 @@ export const RealtimeChat = ({
     } else if (t.id !== "default") {
       sendTheme(t.id);
     }
-    // intentionally omit sendTheme — it’s stable after connection
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    
   }, [partnerUsername]);
 
   const partnerName = useMemo(() => {
