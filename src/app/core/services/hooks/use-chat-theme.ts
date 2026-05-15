@@ -3,9 +3,7 @@ import { useCallback, useState } from "react";
 export interface ChatTheme {
   id: string;
   label: string;
-  /** Hex color shown in the swatch dot */
   color: string;
-  /** Inline style applied to the messages scroll container */
   style: React.CSSProperties;
 }
 

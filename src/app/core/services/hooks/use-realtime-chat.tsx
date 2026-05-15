@@ -25,7 +25,6 @@ export interface ChatMessage {
 }
 
 const EVENT_MESSAGE_TYPE = "message";
-const EVENT_PARTNER_LEFT_TYPE = "partner-left";
 const EVENT_TYPING_TYPE = "typing";
 const EVENT_THEME_TYPE = "theme";
 
@@ -46,10 +45,11 @@ export function useRealtimeChat({
   const [partnerUsername, setPartnerUsername] = useState<string | null>(null);
   const [isPartnerTyping, setIsPartnerTyping] = useState(false);
   const partnerTypingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Keep refs so channel listeners always call the latest callbacks
-  const onThemeChangeRef = useRef(onThemeChange);
-  useEffect(() => { onThemeChangeRef.current = onThemeChange; }, [onThemeChange]);
   const onCustomImageReceivedRef = useRef(onCustomImageReceived);
+  const onThemeChangeRef = useRef(onThemeChange);
+  type PresenceData = { userId: string; username: string; online_at: string };
+
+  useEffect(() => { onThemeChangeRef.current = onThemeChange; }, [onThemeChange]);
   useEffect(() => { onCustomImageReceivedRef.current = onCustomImageReceived; }, [onCustomImageReceived]);
 
   useEffect(() => {
@@ -60,13 +60,9 @@ export function useRealtimeChat({
       config: { presence: { key: userId } },
     });
 
-    // Message listener
     newChannel.on("broadcast", { event: EVENT_MESSAGE_TYPE }, (payload) => {
       setMessages((current) => [...current, payload.payload as ChatMessage]);
     });
-
-    // Presence: capture partner name on sync and join
-    type PresenceData = { userId: string; username: string; online_at: string };
 
     const extractPartner = () => {
       const state = newChannel.presenceState<PresenceData>();
@@ -111,8 +107,7 @@ export function useRealtimeChat({
       });
     };
 
-    newChannel
-      .on("presence", { event: "leave" }, (payload) => {
+    newChannel.on("presence", { event: "leave" }, (payload) => {
         const leftUsers = payload.leftPresences.map((p) => p.key);
         const partnerLeft = leftUsers.some((id) => id !== userId);
 
