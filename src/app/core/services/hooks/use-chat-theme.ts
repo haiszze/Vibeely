@@ -102,6 +102,7 @@ export const CHAT_THEMES: ChatTheme[] = [
 export function useChatTheme() {
   const [themeId, setThemeId] = useState<string>("default");
   const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
+  const [imageOpacity, setImageOpacity] = useState<number>(1);
 
   const setTheme = useCallback((id: string) => {
     setThemeId(id);
@@ -123,13 +124,9 @@ export function useChatTheme() {
           id: "custom",
           label: "Custom",
           color: "transparent",
-          style: {
-            backgroundImage: `url(${customImageUrl})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          },
+          style: {},
         }
       : (CHAT_THEMES.find((t) => t.id === themeId) ?? CHAT_THEMES[0]);
 
-  return { theme, setTheme, customImageUrl, setCustomImage, themes: CHAT_THEMES };
+  return { theme, setTheme, customImageUrl, setCustomImage, imageOpacity, setImageOpacity, themes: CHAT_THEMES };
 }

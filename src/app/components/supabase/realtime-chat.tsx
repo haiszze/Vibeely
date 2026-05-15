@@ -36,7 +36,7 @@ export const RealtimeChat = ({
   const { containerRef, scrollToBottom } = useChatScroll();
   const router = useRouter();
 
-  const { theme, setTheme, customImageUrl, setCustomImage } = useChatTheme();
+  const { theme, setTheme, customImageUrl, setCustomImage, imageOpacity, setImageOpacity } = useChatTheme();
 
   const {
     messages,
@@ -53,6 +53,7 @@ export const RealtimeChat = ({
     userId,
     onThemeChange: setTheme,
     onCustomImageReceived: setCustomImage,
+    onImageOpacityReceived: setImageOpacity,
   });
 
   const [newMessage, setNewMessage] = useState("");
@@ -80,6 +81,14 @@ export const RealtimeChat = ({
     setCustomImage(null);
     sendTheme("default");
   }, [setCustomImage, sendTheme]);
+
+  const handleOpacityChange = useCallback(
+    (opacity: number) => {
+      setImageOpacity(opacity);
+      sendTheme("", null, opacity);
+    },
+    [setImageOpacity, sendTheme],
+  );
 
   // Broadcast our saved theme to the partner the moment they join.
   // Using refs so the effect closure never goes stale.
@@ -240,16 +249,31 @@ export const RealtimeChat = ({
           <ChatThemePicker
             currentThemeId={theme.id}
             customImageUrl={customImageUrl}
+            imageOpacity={imageOpacity}
             onSelect={handleSelectTheme}
             onImageUpload={handleImageUpload}
             onImageRemove={handleImageRemove}
+            onOpacityChange={handleOpacityChange}
           />
           <div className="w-px h-4 bg-border" />
           <ThemeToggle />
         </div>
       </header>
 
-      <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-3" style={theme.style}>
+      <div className="flex-1 relative overflow-hidden" style={theme.style}>
+        {theme.id === "custom" && customImageUrl && (
+          <div
+            aria-hidden
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: `url(${customImageUrl})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              opacity: imageOpacity,
+            }}
+          />
+        )}
+        <div ref={containerRef} className="relative h-full overflow-y-auto px-4 py-3">
         {!hasPartnerLeft && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-3 py-16 text-center">
             <p className="text-sm text-muted-foreground">
@@ -318,6 +342,7 @@ export const RealtimeChat = ({
             </div>
           </div>
         )}
+      </div>
       </div>
 
       <div className="glass-panel relative overflow-hidden shrink-0 border-t before:absolute before:inset-0 before:bg-linear-to-b before:from-white/70 dark:before:from-white/15 before:to-transparent before:pointer-events-none">

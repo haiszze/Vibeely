@@ -12,6 +12,7 @@ interface UseRealtimeChatProps {
   userId: string;
   onThemeChange?: (themeId: string) => void;
   onCustomImageReceived?: (dataUrl: string) => void;
+  onImageOpacityReceived?: (opacity: number) => void;
 }
 
 export interface ChatMessage {
@@ -36,6 +37,7 @@ export function useRealtimeChat({
   userId,
   onThemeChange,
   onCustomImageReceived,
+  onImageOpacityReceived,
 }: UseRealtimeChatProps) {
   const supabase = createClient();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -47,10 +49,12 @@ export function useRealtimeChat({
   const partnerTypingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onCustomImageReceivedRef = useRef(onCustomImageReceived);
   const onThemeChangeRef = useRef(onThemeChange);
+  const onImageOpacityReceivedRef = useRef(onImageOpacityReceived);
   type PresenceData = { userId: string; username: string; online_at: string };
 
   useEffect(() => { onThemeChangeRef.current = onThemeChange; }, [onThemeChange]);
   useEffect(() => { onCustomImageReceivedRef.current = onCustomImageReceived; }, [onCustomImageReceived]);
+  useEffect(() => { onImageOpacityReceivedRef.current = onImageOpacityReceived; }, [onImageOpacityReceived]);
 
   useEffect(() => {
     setIsConnected(false);
@@ -87,14 +91,18 @@ export function useRealtimeChat({
 
     // Theme change listener
     newChannel.on("broadcast", { event: EVENT_THEME_TYPE }, (payload) => {
-      const { themeId, imageDataUrl } = payload.payload as {
-        themeId: string;
+      const { themeId, imageDataUrl, imageOpacity } = payload.payload as {
+        themeId?: string;
         imageDataUrl?: string;
+        imageOpacity?: number;
       };
       if (imageDataUrl) {
         onCustomImageReceivedRef.current?.(imageDataUrl);
       } else if (themeId) {
         onThemeChangeRef.current?.(themeId);
+      }
+      if (imageOpacity !== undefined) {
+        onImageOpacityReceivedRef.current?.(imageOpacity);
       }
     });
 
@@ -143,14 +151,16 @@ export function useRealtimeChat({
   }, [channel, isConnected, hasPartnerLeft, userId]);
 
   const sendTheme = useCallback(
-    (themeId: string, imageDataUrl?: string | null) => {
+    (themeId: string, imageDataUrl?: string | null, imageOpacity?: number) => {
       if (!channel || !isConnected || hasPartnerLeft) return;
+      const payload: Record<string, unknown> = {};
+      if (themeId) payload.themeId = themeId;
+      if (imageDataUrl) payload.imageDataUrl = imageDataUrl;
+      if (imageOpacity !== undefined) payload.imageOpacity = imageOpacity;
       void channel.send({
         type: "broadcast",
         event: EVENT_THEME_TYPE,
-        payload: imageDataUrl
-          ? { themeId, imageDataUrl }
-          : { themeId },
+        payload,
       });
     },
     [channel, isConnected, hasPartnerLeft],

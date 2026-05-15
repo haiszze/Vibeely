@@ -37,17 +37,21 @@ function compressImage(file: File): Promise<string> {
 interface ChatThemePickerProps {
   currentThemeId: string;
   customImageUrl: string | null;
+  imageOpacity: number;
   onSelect: (id: string) => void;
   onImageUpload: (dataUrl: string) => void;
   onImageRemove: () => void;
+  onOpacityChange: (opacity: number) => void;
 }
 
 export function ChatThemePicker({
   currentThemeId,
   customImageUrl,
+  imageOpacity,
   onSelect,
   onImageUpload,
   onImageRemove,
+  onOpacityChange,
 }: ChatThemePickerProps) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -183,28 +187,48 @@ export function ChatThemePicker({
         />
 
         {isCustom && customImageUrl ? (
-          <div className="flex items-center gap-2">
-            <div className="size-10 rounded-lg overflow-hidden shrink-0 border border-border shadow-sm">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={customImageUrl} alt="Custom background" className="w-full h-full object-cover" />
-            </div>
-            <div className="flex flex-col flex-1 min-w-0">
-              <span className="text-xs font-medium truncate">Custom image</span>
+          <>
+            <div className="flex items-center gap-2">
+              <div className="size-10 rounded-lg overflow-hidden shrink-0 border border-border shadow-sm">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={customImageUrl} alt="Custom background" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-xs font-medium truncate">Custom image</span>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-[10px] text-primary hover:underline text-left"
+                >
+                  Change image
+                </button>
+              </div>
               <button
-                onClick={() => fileInputRef.current?.click()}
-                className="text-[10px] text-primary hover:underline text-left"
+                onClick={() => { onImageRemove(); setOpen(false); }}
+                className="size-6 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
+                aria-label="Remove custom image"
               >
-                Change image
+                <Trash2 className="size-3" />
               </button>
             </div>
-            <button
-              onClick={() => { onImageRemove(); setOpen(false); }}
-              className="size-6 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
-              aria-label="Remove custom image"
-            >
-              <Trash2 className="size-3" />
-            </button>
-          </div>
+
+            {/* Opacity slider */}
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] text-muted-foreground">Image opacity</span>
+                <span className="text-[10px] text-muted-foreground tabular-nums">{Math.round(imageOpacity * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={imageOpacity}
+                onChange={(e) => onOpacityChange(parseFloat(e.target.value))}
+                className="w-full h-1.5 rounded-full accent-primary cursor-pointer"
+                aria-label="Image opacity"
+              />
+            </div>
+          </>
         ) : (
           <button
             onClick={() => fileInputRef.current?.click()}
