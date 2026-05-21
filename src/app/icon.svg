@@ -1,0 +1,116 @@
+<svg
+  width="200"
+  height="200"
+  viewBox="0 0 200 200"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&amp;display=swap');
+    </style>
+
+    <!-- Background gradient: hot pink → violet → deep indigo -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#F72585"/>
+      <stop offset="45%"  stop-color="#B5179E"/>
+      <stop offset="100%" stop-color="#7209B7"/>
+    </linearGradient>
+
+    <!-- Top aurora highlight -->
+    <radialGradient id="aurora" cx="50%" cy="12%" r="62%">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="55%"  stop-color="#FF9DE2" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Bottom warm bloom -->
+    <radialGradient id="warm" cx="50%" cy="92%" r="52%">
+      <stop offset="0%"   stop-color="#FF2D78" stop-opacity="0.32"/>
+      <stop offset="100%" stop-color="#FF2D78" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Inner glow at center -->
+    <radialGradient id="center" cx="50%" cy="50%" r="45%">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Letter fill: white top → soft lavender bottom -->
+    <linearGradient id="letter" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EDD8FF" stop-opacity="0.96"/>
+    </linearGradient>
+
+    <!-- Rim light on border -->
+    <linearGradient id="rim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.40"/>
+      <stop offset="40%"  stop-color="#FFFFFF" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.18"/>
+    </linearGradient>
+
+    <!-- Deep bloom on text -->
+    <filter id="bloom" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="13"  result="wide"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="tight"/>
+      <feMerge>
+        <feMergeNode in="wide"/>
+        <feMergeNode in="tight"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Soft glow on sparkles -->
+    <filter id="sglow" x="-120%" y="-120%" width="340%" height="340%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background layers -->
+  <rect width="200" height="200" rx="44" fill="url(#bg)"/>
+  <rect width="200" height="200" rx="44" fill="url(#aurora)"/>
+  <rect width="200" height="200" rx="44" fill="url(#warm)"/>
+  <rect width="200" height="200" rx="44" fill="url(#center)"/>
+
+  <!-- Rim / border highlight -->
+  <rect width="200" height="200" rx="44" fill="none" stroke="url(#rim)" stroke-width="1.5"/>
+
+  <!-- Sparkle — top right (4-pointed star) -->
+  <g filter="url(#sglow)">
+    <path
+      d="M160 34 L162 41 L169 43 L162 45 L160 52 L158 45 L151 43 L158 41 Z"
+      fill="white"
+      opacity="0.88"
+    />
+  </g>
+
+  <!-- Sparkle — bottom left (smaller) -->
+  <g filter="url(#sglow)">
+    <path
+      d="M42 154 L43.6 158.5 L48.5 160 L43.6 161.5 L42 166 L40.4 161.5 L35.5 160 L40.4 158.5 Z"
+      fill="white"
+      opacity="0.68"
+    />
+  </g>
+
+  <!-- Tiny accent dots -->
+  <circle cx="148" cy="30"  r="1.8" fill="white" opacity="0.55"/>
+  <circle cx="38"  cy="50"  r="1.4" fill="white" opacity="0.45"/>
+  <circle cx="164" cy="158" r="1.2" fill="white" opacity="0.40"/>
+  <circle cx="172" cy="55"  r="1.0" fill="white" opacity="0.35"/>
+
+  <!-- VBLY in Great Vibes cursive — large, centered -->
+  <text
+    x="100"
+    y="120"
+    font-family="'Great Vibes', 'Dancing Script', 'Brush Script MT', cursive"
+    font-size="88"
+    fill="url(#letter)"
+    text-anchor="middle"
+    filter="url(#bloom)"
+  >Vly</text>
+</svg>

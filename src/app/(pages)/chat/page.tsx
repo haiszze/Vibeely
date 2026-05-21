@@ -10,6 +10,8 @@ import {
   subscribeToQueueMatch,
 } from "@/src/app/core/services/api/queue/queue-client";
 import dynamic from "next/dynamic";
+
+
 const Loading = dynamic(
   () =>
     import("../../components/loading/loading").then((m) => ({
