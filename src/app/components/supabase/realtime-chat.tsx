@@ -123,6 +123,22 @@ export const RealtimeChat = ({
   const isChatDisabled =
     !isConnected || hasPartnerLeft || partnerUsername == null;
 
+  // With `interactive-widget=resizes-content` set in the root layout, iOS
+  // Safari now shrinks the actual layout viewport (and therefore `h-dvh`)
+  // when the keyboard opens, so the flex layout below resizes correctly on
+  // its own — no manual height/position overrides needed. We still listen
+  // for visualViewport changes purely to keep the latest message scrolled
+  // into view as the keyboard opens/closes.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const handleViewportChange = () => scrollToBottom();
+
+    vv.addEventListener("resize", handleViewportChange);
+    return () => vv.removeEventListener("resize", handleViewportChange);
+  }, [scrollToBottom]);
+
   useEffect(() => {
     scrollToBottom();
   }, [messages, isPartnerTyping, hasPartnerLeft, scrollToBottom]);
@@ -220,7 +236,7 @@ export const RealtimeChat = ({
   );
 
   return (
-    <div className="flex flex-col h-dvh w-full bg-background text-foreground antialiased">
+    <div className="flex flex-col h-svh">
       <header className="glass-panel relative overflow-hidden flex items-center justify-between shrink-0 border-b px-4 py-3 before:absolute before:inset-0 before:bg-linear-to-b before:from-white/70 dark:before:from-white/15 before:to-transparent before:pointer-events-none">
         <div className="flex items-center gap-3">
           <div
@@ -348,7 +364,7 @@ export const RealtimeChat = ({
       <div className="glass-panel relative overflow-hidden shrink-0 border-t before:absolute before:inset-0 before:bg-linear-to-b before:from-white/70 dark:before:from-white/15 before:to-transparent before:pointer-events-none">
         <form
           onSubmit={handleSendMessage}
-          className="flex items-center gap-2 px-3 py-4"
+          className="flex items-center gap-2 px-3 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
         >
           <Button
             type="button"
@@ -376,9 +392,10 @@ export const RealtimeChat = ({
 
           <Input
             className={cn(
-              "glass-panel flex-1 rounded-small border p-4 text-sm transition-all duration-300",
+              "glass-panel flex-1 rounded-small border p-4 text-base transition-all duration-300",
               isChatDisabled && "opacity-50 cursor-not-allowed",
             )}
+            style={{ fontSize: 16 }}
             type="text"
             value={newMessage}
             onChange={(e) => {
