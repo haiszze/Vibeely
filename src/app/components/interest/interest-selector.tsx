@@ -113,9 +113,6 @@ export function InterestSelector({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Measure real available space below/above the trigger whenever the
-  // dropdown opens (or the viewport/keyboard resizes), and flip the menu
-  // upward if there isn't enough room below it.
   useEffect(() => {
     if (!dropdownOpen) return;
 
@@ -124,9 +121,9 @@ export function InterestSelector({
       const rect = triggerWrapperRef.current.getBoundingClientRect();
       const viewportHeight =
         window.visualViewport?.height || window.innerHeight;
-      const gap = 8; // matches mt-2 / mb-2
-      const edgePadding = 16; // breathing room from the screen edge
-      const preferredMax = 256; // 16rem
+      const gap = 8;
+      const edgePadding = 16;
+      const preferredMax = 256;
 
       const spaceBelow = viewportHeight - rect.bottom - gap - edgePadding;
       const spaceAbove = rect.top - gap - edgePadding;

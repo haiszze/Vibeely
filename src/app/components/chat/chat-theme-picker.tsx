@@ -171,21 +171,20 @@ export function ChatThemePicker({
         </div>
 
         {/* Divider */}
-        <div className="my-3 border-t border-border" />
+        {/* <div className="my-3 border-t border-border" /> */}
 
         {/* Custom image upload */} 
-        <input
+        {/* <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
           className="hidden"
           onChange={handleFileChange}
-        />
+        /> */}
 
-        {isCustom && customImageUrl ? (
+        {/* {isCustom && customImageUrl ? (
           <div className="flex items-center gap-2">
             <div className="size-10 rounded-lg overflow-hidden shrink-0 border border-border shadow-sm">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={customImageUrl} alt="Custom background" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col flex-1 min-w-0">
@@ -213,7 +212,7 @@ export function ChatThemePicker({
             <ImagePlus className="size-3.5" />
             Upload image
           </button>
-        )}
+        )} */}
 
         {uploadError && (
           <p className="mt-2 text-[10px] text-destructive text-center">{uploadError}</p>
