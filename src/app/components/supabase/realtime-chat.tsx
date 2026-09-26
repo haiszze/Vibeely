@@ -252,22 +252,6 @@ export const RealtimeChat = ({
             ) : (
               <span className="h-3.5 w-20 rounded bg-muted animate-pulse" />
             )}
-            <span
-              className={cn(
-                "text-xs",
-                hasPartnerLeft
-                  ? "text-destructive"
-                  : isConnected
-                    ? "text-emerald-500"
-                    : "text-muted-foreground",
-              )}
-            >
-              {hasPartnerLeft
-                ? "Left the chat"
-                : isConnected
-                  ? "Online"
-                  : "Connecting…"}
-            </span>
           </div>
         </div>
 
@@ -415,7 +399,7 @@ export const RealtimeChat = ({
           {!isChatDisabled && newMessage.trim() && (
             <Button
               type="submit"
-              className="aspect-square rounded-full shrink-0 animate-in fade-in slide-in-from-right-2 duration-200 bg-linear-to-br from-primary to-secondary text-white border-0 hover:opacity-90"
+              className="aspect-square rounded-full shrink-0 animate-in fade-in slide-in-from-right-2 duration-200 bg-linear-to-br from-primary to-secondary  border-0 "
             >
               <Send className="size-4" />
             </Button>
