@@ -15,7 +15,6 @@ import { Input } from "@/src/app/components/ui/input";
 import { logError } from "@/src/app/core/services/log/log";
 import { useRouter } from "next/navigation";
 import { clearMatchTables } from "@/src/app/core/services/api/queue/queue-client";
-import Wingman from "@/src/app/components/wingman/wingman";
 import { useChatTheme } from "@/src/app/core/services/hooks/use-chat-theme";
 import { ChatThemePicker } from "@/src/app/components/chat/chat-theme-picker";
 import { ThemeToggle } from "@/src/app/components/theme/theme-toggle";
