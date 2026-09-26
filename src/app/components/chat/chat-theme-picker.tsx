@@ -175,60 +175,39 @@ export function ChatThemePicker({
         </div>
 
         {/* Divider */}
-        <div className="my-3 border-t border-border" />
+        {/* <div className="my-3 border-t border-border" /> */}
 
         {/* Custom image upload */} 
-        <input
+        {/* <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
           className="hidden"
           onChange={handleFileChange}
-        />
+        /> */}
 
-        {isCustom && customImageUrl ? (
-          <>
-            <div className="flex items-center gap-2">
-              <div className="size-10 rounded-lg overflow-hidden shrink-0 border border-border shadow-sm">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={customImageUrl} alt="Custom background" className="w-full h-full object-cover" />
-              </div>
-              <div className="flex flex-col flex-1 min-w-0">
-                <span className="text-xs font-medium truncate">Custom image</span>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-[10px] text-primary hover:underline text-left"
-                >
-                  Change image
-                </button>
-              </div>
+        {/* {isCustom && customImageUrl ? (
+          <div className="flex items-center gap-2">
+            <div className="size-10 rounded-lg overflow-hidden shrink-0 border border-border shadow-sm">
+              <img src={customImageUrl} alt="Custom background" className="w-full h-full object-cover" />
+            </div>
+            <div className="flex flex-col flex-1 min-w-0">
+              <span className="text-xs font-medium truncate">Custom image</span>
               <button
-                onClick={() => { onImageRemove(); setOpen(false); }}
-                className="size-6 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
-                aria-label="Remove custom image"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-[10px] text-primary hover:underline text-left"
               >
-                <Trash2 className="size-3" />
+                Change image
               </button>
             </div>
-
-            {/* Opacity slider */}
-            <div className="mt-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] text-muted-foreground">Image opacity</span>
-                <span className="text-[10px] text-muted-foreground tabular-nums">{Math.round(imageOpacity * 100)}%</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={imageOpacity}
-                onChange={(e) => onOpacityChange(parseFloat(e.target.value))}
-                className="w-full h-1.5 rounded-full accent-primary cursor-pointer"
-                aria-label="Image opacity"
-              />
-            </div>
-          </>
+            <button
+              onClick={() => { onImageRemove(); setOpen(false); }}
+              className="size-6 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
+              aria-label="Remove custom image"
+            >
+              <Trash2 className="size-3" />
+            </button>
+          </div>
         ) : (
           <button
             onClick={() => fileInputRef.current?.click()}
@@ -237,7 +216,7 @@ export function ChatThemePicker({
             <ImagePlus className="size-3.5" />
             Upload image
           </button>
-        )}
+        )} */}
 
         {uploadError && (
           <p className="mt-2 text-[10px] text-destructive text-center">{uploadError}</p>

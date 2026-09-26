@@ -54,7 +54,7 @@ export default function Home() {
   }
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-background transition-colors duration-300">
+    <div className="relative h-svh w-full overflow-hidden bg-background transition-colors duration-300">
       <div className="fixed top-4 right-4 z-50">
         <ThemeToggle />
       </div>

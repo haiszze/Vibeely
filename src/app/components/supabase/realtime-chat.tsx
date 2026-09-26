@@ -1,7 +1,14 @@
 "use client";
 
 import { LogOut, RefreshCw, Send } from "lucide-react";
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { cn } from "@/src/app/lib/utils";
 import { ChatMessageItem } from "@/src/app/components/supabase/chat-message";
@@ -15,7 +22,6 @@ import { Input } from "@/src/app/components/ui/input";
 import { logError } from "@/src/app/core/services/log/log";
 import { useRouter } from "next/navigation";
 import { clearMatchTables } from "@/src/app/core/services/api/queue/queue-client";
-import Wingman from "@/src/app/components/wingman/wingman";
 import { useChatTheme } from "@/src/app/core/services/hooks/use-chat-theme";
 import { ChatThemePicker } from "@/src/app/components/chat/chat-theme-picker";
 import { ThemeToggle } from "@/src/app/components/theme/theme-toggle";
@@ -94,8 +100,12 @@ export const RealtimeChat = ({
 
   const themeRef = useRef(theme);
   const customImageUrlRef = useRef(customImageUrl);
-  useEffect(() => { themeRef.current = theme; }, [theme]);
-  useEffect(() => { customImageUrlRef.current = customImageUrl; }, [customImageUrl]);
+  useEffect(() => {
+    themeRef.current = theme;
+  }, [theme]);
+  useEffect(() => {
+    customImageUrlRef.current = customImageUrl;
+  }, [customImageUrl]);
 
   useEffect(() => {
     if (!partnerUsername) return;
@@ -112,10 +122,31 @@ export const RealtimeChat = ({
 
   const partnerName = useMemo(() => {
     return (
-      messages.find((m) => m.user.id !== userId)?.user.name ??
-      partnerUsername
+      messages.find((m) => m.user.id !== userId)?.user.name ?? partnerUsername
     );
   }, [messages, userId, partnerUsername]);
+
+  // Single source of truth for "can the user send a message right now?" —
+  // used by the input, the send guard, and the submit button so they can
+  // never drift out of sync with each other.
+  const isChatDisabled =
+    !isConnected || hasPartnerLeft || partnerUsername == null;
+
+  // With `interactive-widget=resizes-content` set in the root layout, iOS
+  // Safari now shrinks the actual layout viewport (and therefore `h-dvh`)
+  // when the keyboard opens, so the flex layout below resizes correctly on
+  // its own — no manual height/position overrides needed. We still listen
+  // for visualViewport changes purely to keep the latest message scrolled
+  // into view as the keyboard opens/closes.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const handleViewportChange = () => scrollToBottom();
+
+    vv.addEventListener("resize", handleViewportChange);
+    return () => vv.removeEventListener("resize", handleViewportChange);
+  }, [scrollToBottom]);
 
   useEffect(() => {
     scrollToBottom();
@@ -206,15 +237,15 @@ export const RealtimeChat = ({
   const handleSendMessage = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      if (!newMessage.trim() || !isConnected || hasPartnerLeft) return;
+      if (!newMessage.trim() || isChatDisabled) return;
       sendMessage(newMessage);
       setNewMessage("");
     },
-    [newMessage, isConnected, hasPartnerLeft, sendMessage],
+    [newMessage, isChatDisabled, sendMessage],
   );
 
   return (
-    <div className="flex flex-col h-dvh w-full bg-background text-foreground antialiased">
+    <div className="flex flex-col h-svh">
       <header className="glass-panel relative overflow-hidden flex items-center justify-between shrink-0 border-b px-4 py-3 before:absolute before:inset-0 before:bg-linear-to-b before:from-white/70 dark:before:from-white/15 before:to-transparent before:pointer-events-none">
         <div className="flex items-center gap-3">
           <div
@@ -230,18 +261,6 @@ export const RealtimeChat = ({
             ) : (
               <span className="h-3.5 w-20 rounded bg-muted animate-pulse" />
             )}
-            <span
-              className={cn(
-                "text-xs",
-                hasPartnerLeft
-                  ? "text-destructive"
-                  : isConnected
-                    ? "text-emerald-500"
-                    : "text-muted-foreground",
-              )}
-            >
-              {hasPartnerLeft ? "Left the chat" : isConnected ? "Online" : "Connecting…"}
-            </span>
           </div>
         </div>
 
@@ -314,7 +333,9 @@ export const RealtimeChat = ({
         {hasPartnerLeft && (
           <div className="flex justify-center py-6">
             <div className="glass-panel-strong rounded-2xl border px-6 py-5 text-center max-w-xs relative overflow-hidden before:absolute before:inset-0 before:rounded-[inherit] before:bg-linear-to-b before:from-white/70 dark:before:from-white/15 before:to-transparent before:pointer-events-none">
-              <p className="text-sm font-semibold mb-1">{partnerName ?? "Your match"} left the chat</p>
+              <p className="text-sm font-semibold mb-1">
+                {partnerName ?? "Your match"} left the chat
+              </p>
               <p className="text-xs text-muted-foreground mb-4">
                 The conversation has ended. Find a new match.
               </p>
@@ -346,15 +367,9 @@ export const RealtimeChat = ({
       </div>
 
       <div className="glass-panel relative overflow-hidden shrink-0 border-t before:absolute before:inset-0 before:bg-linear-to-b before:from-white/70 dark:before:from-white/15 before:to-transparent before:pointer-events-none">
-        {/* <Wingman
-          messages={messages}
-          currentUserId={userId}
-          partnerName={partnerName ?? undefined}
-        /> */}
-
         <form
           onSubmit={handleSendMessage}
-          className="flex items-center gap-2 px-3 py-4"
+          className="flex items-center gap-2 px-3 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
         >
           <Button
             type="button"
@@ -382,20 +397,30 @@ export const RealtimeChat = ({
 
           <Input
             className={cn(
-              "glass-panel flex-1 rounded-small border p-4 text-sm transition-all duration-300",
-              hasPartnerLeft && "opacity-50 cursor-not-allowed",
+              "glass-panel flex-1 rounded-small border p-4 text-base transition-all duration-300",
+              isChatDisabled && "opacity-50 cursor-not-allowed",
             )}
+            style={{ fontSize: 16 }}
             type="text"
             value={newMessage}
-            onChange={(e) => { setNewMessage(e.target.value); sendTyping(); }}
-            placeholder={hasPartnerLeft ? "Partner left the chat" : `Message ${partnerName}…`}
-            disabled={!isConnected || hasPartnerLeft}
+            onChange={(e) => {
+              setNewMessage(e.target.value);
+              sendTyping();
+            }}
+            placeholder={
+              hasPartnerLeft
+                ? "Partner left the chat"
+                : partnerUsername == null
+                  ? "Waiting for a partner..."
+                  : `Send a message to ${partnerName}`
+            }
+            disabled={isChatDisabled}
           />
 
-          {isConnected && !hasPartnerLeft && newMessage.trim() && (
+          {!isChatDisabled && newMessage.trim() && (
             <Button
               type="submit"
-              className="aspect-square rounded-full shrink-0 animate-in fade-in slide-in-from-right-2 duration-200 bg-linear-to-br from-primary to-secondary text-white border-0 hover:opacity-90"
+              className="aspect-square rounded-full shrink-0 animate-in fade-in slide-in-from-right-2 duration-200 bg-linear-to-br from-primary to-secondary  border-0 "
             >
               <Send className="size-4" />
             </Button>
@@ -405,5 +430,3 @@ export const RealtimeChat = ({
     </div>
   );
 };
-
-
