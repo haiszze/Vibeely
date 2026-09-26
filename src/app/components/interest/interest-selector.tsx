@@ -22,6 +22,7 @@ import {
   MessageCircleHeart,
   ChevronDown,
 } from "lucide-react";
+import { Span } from "next/dist/trace";
 
 interface InterestSelectorProps {
   onInterestsSelect: (interestPageProps: UserProp) => void | Promise<void>;
@@ -301,16 +302,7 @@ export function InterestSelector({
         disabled={loading || !name.trim() || selected.length === 0}
         className={`w-full py-3 bg-secondary rounded-2xl text-white font-semibold text-lg shadow-[0_10px_15px_-3px_rgba(var(--primary-rgb),0.3)] hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2`}
       >
-        {loading ? (
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            <span>LOADING...</span>
-          </div>
-        ) : (
-          <>
-            <span>Vibie</span>
-          </>
-        )}
+        {loading ? <span>Loading...</span> : <span>Vibee</span>}
       </motion.button>
     </div>
   );
